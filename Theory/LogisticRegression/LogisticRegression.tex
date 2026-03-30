@@ -1,0 +1,540 @@
+%!TEX root = ../MLPR.tex
+% Impostazioni di formattazione secondo le linee guida
+\setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+\setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+
+\textbf{Logistic regression}: Logistic regression is a widely used statistical and machine learning method for binary classification tasks. It models the probability that a given input belongs to a particular class by applying the logistic (sigmoid) function to a linear combination of the input features. Logistic regression is particularly valued for its simplicity, interpretability, and ability to provide well-calibrated probability estimates, making it a fundamental tool in both statistics and machine learning.
+
+Logistic regression is a discriminative approach for classification. We directly model the class posterior distribution $P(C|X)$.
+
+Being discriminative means it focuses on finding the boundary between classes, not on modeling the distribution of the features themselves.
+
+Let's consider a binary problem. Our approach is to assume that our decision rule should be a linear rule represented by $w, b$. Given $w$ and $b$, we can compute the expression for the posterior class probability as:
+
+
+\begin{equation*}
+P(C=h_1|x,w,b) = e^{w^T x + b} P(C=h_0|x,w,b)
+\end{equation*}
+
+\begin{equation*}
+e^{w^T x + b} + 1 = P(C=h_1|x,w,b)
+\end{equation*}
+
+Solving for $P(C = h_1 | x, w, b)$ we obtain:
+
+\begin{equation*}
+P(C=h_1|x,w,b) = \frac{e^{w^T x + b}}{1 + e^{w^T x + b}} = \frac{1}{1 + e^{-(w^T x + b)}} = \sigma(w^T x + b)
+\end{equation*}
+
+where
+
+\begin{equation*}
+\sigma(x) = \frac{1}{1 + e^{-x}}
+\end{equation*}
+
+is called sigmoid function or logistic function.
+
+\textbf{Some useful properties of $\sigma$ are:}
+
+
+\begin{equation*}
+\sigma(1-x) = \sigma(-x)
+\end{equation*}
+
+\begin{equation*}
+\frac{d\sigma(x)}{dx} = \sigma(x)(1-\sigma(x))
+\end{equation*}
+
+The expression $P(C = h_1 | x, w, b) = \sigma(w^T x + b)$ provides a model that allows computing the posterior probabilities for $h_1$ and $h_0$.
+
+The model assumes that decision rules are linear surfaces (hyperplanes) orthogonal to $w$.
+
+\begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
+\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
+Gli iperpiani sono generalizzazioni dei piani nello spazio a più dimensioni. In uno spazio tridimensionale, un piano è una superficie piatta a due dimensioni. In uno spazio a (n) dimensioni, un iperpiano è una "superficie" piatta di dimensione (n-1) che divide lo spazio in due parti.
+\end{tcolorbox}
+
+The model parameters are $\theta = (w, b)$.
+
+Obviously, if we knew $w, b$ then we could compute the predictive distribution for the class labels $P(C = h_1 | x, w, b)$. But we do not know them.
+
+We are interested in finding an alternative way to estimate an effective classification rule that does not require an explicit model of the feature vectors distribution. So, we concentrate directly on the form of the class posterior probabilities.
+
+We follow a frequentist approach, so we compute an estimate for $w$ and $b$ from a set of $n$ training samples.
+
+We assume we have a labeled dataset $D = \{(x_1, c_1), \ldots, (x_n, c_n)\}$.
+
+We assume that feature vectors and corresponding class labels are i.i.d. given the model parameters.
+
+The model parameters are $\theta = (w, b)$.
+
+The complete-data likelihood for $\theta$ consists of the joint density of the observed training set variables, given parameter vector $\theta$:
+
+
+\begin{equation*}
+L(\theta) = f_{X_1...X_n, C_1...C_n}(x_1, ..., x_n, c_1, ..., c_n | \theta)
+\end{equation*}
+
+Since we assume i.i.d. observations, we can factorize the likelihood as:
+
+
+\begin{equation*}
+L(\theta) = f_{X_1...X_n, C_1...C_n}(x_1, ..., x_n, c_1, ..., c_n | \theta) = \prod_{i=1}^n f_{X,C}(x_i, c_i | \theta)
+\end{equation*}
+
+The difference with respect to generative models is in the way we represent the joint density:
+
+
+\begin{equation*}
+f_{X,C}(x_i, c_i | \theta) = P(C = c_i | X = x_i, \theta) \cdot f_X(x_i)
+\end{equation*}
+
+Note that, since classification requires computing posterior class probabilities, and we are defining an explicit model for such terms, we do not need to explicitly provide an expression for the marginal feature density $f_X(x)$.
+
+So, the complete-data log-likelihood becomes:
+
+
+\begin{equation*}
+\log L(\theta) = \log \prod_{i=1}^n f_{X,C}(x_i, c_i | \theta) = \sum_{i=1}^n \log P(C_i = c_i | X_i = x_i, \theta) + \sum_{i=1}^n \log f_X(x_i)
+\end{equation*}
+
+We can estimate the model parameters by following a ML approach:
+
+
+\begin{equation*}
+\hat{\theta}_{ML} = \arg\max_{\theta} \log L(\theta)
+\end{equation*}
+
+Since the model parameters $\theta$ influence only the first sum, optimization of the log-likelihood corresponds to the maximization of the conditional probability of the observed dataset labels, given the observed feature vectors and the model parameters:
+
+
+\begin{equation*}
+\ell(\theta) = \sum_{i=1}^n \log P(C_i = c_i | X_i = x_i, \theta)
+\end{equation*}
+
+We now need to express our model in the expression for $\ell(\theta)$. We assume that the label for class $h_1$ is 1 and the label for class $h_0$ is 0.
+
+Our model specifies the probabilities for observed class labels in terms of $w$ and $b$:
+
+
+\begin{equation*}
+y_i = P(C_i = 1 | x_i, w, b) = \sigma(w^T x_i + b)
+\end{equation*}
+
+It follows that:
+
+
+\begin{equation*}
+P(C_i = 0 | x_i, w, b) = 1 - y_i = 1 - \sigma(w^T x_i + b) = \sigma(-(w^T x_i + b))
+\end{equation*}
+
+We note that $C_i | x_i, w, b$ follows a Bernoulli distribution:
+
+
+\begin{equation*}
+C_i | x_i, w, b \sim Ber(\sigma(w^T x_i + b)) = Ber(y_i)
+\end{equation*}
+
+The conditional probability of the class labels, ie our objective function, is thus given by:
+
+
+\begin{equation*}
+\ell(w, b) = \log \prod_{i=1}^n P(C_i = c_i | x_i, w, b) = \log \prod_i y_i^{c_i} (1-y_i)^{1-c_i} = \sum_{i=1}^n [c_i \log y_i + (1-c_i) \log (1-y_i)]
+\end{equation*}
+
+Our goal is the maximization of $\ell$, which corresponds to the maximization of the likelihood function, ie the ML solution. We thus seek $w, b$ that maximize $\ell(w, b)$:
+
+
+\begin{equation*}
+\hat{w}, \hat{b} = \arg\max_{w, b} \ell(w, b) = \arg\max_{w, b} \sum_{i=1}^n [c_i \log y_i + (1-c_i) \log (1-y_i)]
+\end{equation*}
+
+The ML solution is also the solution that minimizes the average cross-entropy between the distribution of observed and predicted labels.
+
+\textbf{Cross-entropy} is a measure of the difference between two probability distributions: the true distribution (the observed labels) and the predicted distribution (the model's output probabilities). In classification, the average cross-entropy is the mean value of the cross-entropy computed over all samples in your dataset. Minimizing the average cross-entropy means making the predicted probabilities as close as possible to the true labels.
+
+Rather than maximizing $\ell(w, b)$, we can minimize:
+
+
+\begin{equation*}
+J(w, b) = -\ell(w, b) = -\sum_{i=1}^n [c_i \log y_i + (1-c_i) \log (1-y_i)]
+\end{equation*}
+
+The expression:
+
+
+\begin{equation*}
+H(c_i, y_i) = -[c_i \log y_i + (1-c_i) \log (1-y_i)]
+\end{equation*}
+
+represents the binary cross-entropy between the distribution of observed and predicted labels for the i-th sample.
+
+More in general, let $P$ and $Q$ be two distributions over the same domain, the cross-entropy between the two distributions is defined as:
+
+
+\begin{equation*}
+H(P, Q) = E_P[-\log Q(x)]
+\end{equation*}
+
+For discrete distributions, this can be expressed as:
+
+
+\begin{equation*}
+H(P, Q) = \sum_{x \in S} P(x)(-\log Q(x))
+\end{equation*}
+
+In our case, $P$ is the empirical distribution of class labels, from the point of view of an observer who knows the actual label:
+
+
+\begin{equation*}
+P(C_i = 1 | X_i = x_i, E) = \begin{cases} 1 & \text{if } c_i = 1 \\ 0 & \text{if } c_i = 0 \end{cases}
+\end{equation*}
+
+\begin{equation*}
+P(C_i = 0 | X_i = x_i, E) = \begin{cases} 0 & \text{if } c_i = 1 \\ 1 & \text{if } c_i = 0 \end{cases}
+\end{equation*}
+
+or, equivalently:
+
+
+\begin{equation*}
+P(C_i = 1 | X_i = x_i, E) = c_i, \quad P(C_i = 0 | X_i = x_i, E) = 1 - c_i
+\end{equation*}
+
+ie a Bernoulli distribution with parameter $c_i$.
+
+Distribution $Q$ is the distribution for the predicted labels according to our recognizer $R$:
+
+
+\begin{equation*}
+Q(c) = P(C_i = c | X_i = x_i, R(w, b))
+\end{equation*}
+
+i.e.:
+
+
+\begin{equation*}
+Q(1) = P(C_i = 1 | X_i = x_i, R(w, b)) = y_i = \sigma(w^T x_i + b)
+\end{equation*}
+
+\begin{equation*}
+Q(0) = P(C_i = 0 | X_i = x_i, R(w, b)) = 1 - y_i = 1 - \sigma(w^T x_i + b)
+\end{equation*}
+
+Logistic regression looks for the minimizer of the average cross-entropy between the distribution for the training set labels of an evaluator $E$ who knows the real label and the distribution for the training set labels as predicted by the model $R(w, b)$ itself.
+
+The cross-entropy, as a function of $Q$, is minimized when $Q = P$.
+
+The cross-entropy can also be interpreted as a measure of the difference between $P$ and $Q$. In our case, it measures how different the predicted distribution $\text{Ber}(y_i)$ is from the empirical label distribution $\text{Ber}(c_i)$ (the distribution of the evaluator $E$).
+
+Minimizing the average cross-entropy means we are looking for conditional label distributions as similar, on average, as possible to the empirical one, given the model constraints (ie a linear classification rule).
+
+Alternatively, we can regard the process as maximization of the likelihood for the observed labels.
+
+Another interesting interpretation of the average cross-entropy can be obtained by rewriting the cross-entropy in terms of $z_i = 2c_i - 1$. This terms $z_i$ still represent class labels:
+
+
+\begin{equation*}
+z_i = \begin{cases} 1 & \text{if } c_i = 1 \\ -1 & \text{if } c_i = 0 \end{cases}
+\end{equation*}
+
+The objective function that we want to minimize corresponds to:
+
+
+\begin{equation*}
+J(w, b) = \sum_i H(c_i, y_i)
+\end{equation*}
+
+where:
+
+
+\begin{equation*}
+H(c_i, y_i) = -[c_i \log y_i + (1-c_i) \log (1-y_i)]
+\end{equation*}
+
+Note that $H(c_i, y_i)$ is a function of $c_i$, but also of $w, b$ and $x_i$, since $y_i = \sigma(w^T x_i + b)$.
+
+Let $s_i = w^T x_i + b$. In terms of $z_i$ we can rewrite $H$ as:
+
+\[
+H(c_i, y_i) = -[c_i \log y_i + (1-c_i) \log (1-y_i)]
+\]
+
+
+\begin{equation*}
+\begin{cases}
+-\log \sigma(s_i) & \text{if } c_i = 1 \\
+-\log (1-\sigma(s_i)) = -\log \sigma(-s_i) & \text{if } c_i = 0
+\end{cases}
+\end{equation*}
+
+\begin{equation*}
+H(c_i, y_i) = -\log \sigma(z_i s_i) = -\log \sigma(z_i (w^T x_i + b))
+\end{equation*}
+
+\begin{equation*}
+= \log(1 + e^{-z_i (w^T x_i + b)})
+\end{equation*}
+
+The objective function can thus be rewritten as:
+
+
+\begin{equation*}
+J(w, b) = \sum_{i=1}^n H(c_i, y_i) = \sum_{i=1}^n \log(1 + e^{-z_i (w^T x_i + b)}) = \sum_{i=1}^n \ell(-z_i (w^T x_i + b))
+\end{equation*}
+
+where:
+
+
+\begin{equation*}
+\ell(x) = \log(1 + e^{-x})
+\end{equation*}
+
+is the logistic function.
+
+Our goal is to find the minimizer of $J(w, b)$.
+
+We can interpret the function $\ell$ as the cost of the prediction made with model $w, b$ for each sample.
+
+Remember that the log-posterior class probability ratio for sample $x_i$ is:
+
+
+\begin{equation*}
+\log \frac{P(C_i = 1 | X_i = x_i)}{P(C_i = 0 | X_i = x_i)} = w^T x_i + b = s_i
+\end{equation*}
+
+The decision rule takes the form $s_i \gtrless 0$. Since $s_i = w^T x_i + b$, decision rules are linear hyperplane orthogonal to the vector $w$.
+
+$s_i$ is related to the distance of the sample $x_i$ from the separating surface. When $s_i$ is positive, our classifier is favoring class $h_1$, whereas negative $s_i$ means we are classifying the sample as belonging to class $h_0$.
+
+The cost we pay for each sample is $\ell(-z_i s_i)$.
+
+If the prediction and the actual class agree, ie $(z_i = 1, s_i > 0)$ or $(z_i = -1, s_i < 0)$, then $-z_i s_i < 0$ and we pay a low cost. The cost becomes exponentially smaller (asymptotically) as the absolute value of $s_i$ increases (we move away from the separation surface).
+
+If the prediction and the actual class disagree, ie $(z_i = 1, s_i < 0)$ or $(z_i = -1, s_i > 0)$, then $-z_i s_i > 0$ and we pay a cost that increases (asymptotically) linearly with $|s_i|$.
+
+We can thus interpret the logistic regression objective as a measure of an empirical (because it's computed on the observed samples) risk. Our goal is to minimize the empirical risk.
+
+More in general, empirical risk minimization is a framework for the estimation of classification models which aims at minimizing an empirical risk function over our training data. So, the generalized risk minimization problem is to minimize the risk:
+
+
+\begin{equation*}
+R(\theta) = \sum_i \ell(\theta, x_i, z_i)
+\end{equation*}
+
+where $\ell$ is called loss or cost function, and $\theta$ are the parameters of the classification model, e.g. $(w, b)$ in our case.
+
+Logistic regression solutions cannot be computed in closed form, so we will resort to numerical solvers through an algorithm that requires a function that computes the loss and its gradient with respect to $w$ and $b$.
+
+If classes are linearly separable, the logistic regression solution is not defined because the loss can always be made smaller by increasing the weights, and the parameters do not converge to a finite value. Basically, we can make the values of $s_i$ arbitrarily high by simply increasing the norm of $w$ and changing accordingly the value of $b$. As we increase the norm of $w$, the loss becomes lower, thus we are decreasing the objective function. The function does not have a minimum, but has an infimum $\inf J(w, b) = 0$, corresponding to $|w| \to \infty$.
+
+To make the problem solvable again, we can look for solutions with small norms by introducing a norm penalty to the objective function. The penalty is called the regularization term. The objective function that we minimize is:
+
+
+\begin{equation*}
+R(w, b) = \frac{\lambda}{2} \|w\|^2 + \sum_{i=1}^n \log(1 + e^{-z_i (w^T x_i + b)})
+\end{equation*}
+
+where $\lambda$ is a hyper-parameter that allows specifying the relative weight of the regularization term.
+
+Alternatively, we look for the minimizer of:
+
+
+\begin{equation*}
+R(w, b) = \frac{\lambda}{2} \|w\|^2 + \frac{1}{n} \sum_{i=1}^n \log(1 + e^{-z_i (w^T x_i + b)})
+\end{equation*}
+
+where the risk is averaged over all samples, and $\lambda$ is the regularization coefficient.
+
+$\lambda$ is a hyper-parameter, and should be selected to optimize the performance of the classifier. Note that $\lambda$ cannot be computed by minimizing $R$ with respect to $\lambda$, as we would obtain the trivial solution $\lambda = 0$.
+
+The selection of good values for $\lambda$ should thus be based on other approaches, such as cross-validation.
+
+The model is called regularized Logistic Regression, and is an example of a regularized risk minimization problem:
+
+
+\begin{equation*}
+R(w, b) = \Phi(w, b) + \frac{1}{n} \sum_{i=1}^n \ell(x_i, z_i, w, b)
+\end{equation*}
+
+The regularization term $\Phi$, in our case $\frac{\lambda}{2} |w|^2$, can be interpreted as a term that favors simpler solutions.
+
+Regularization allows reducing the risk of over-fitting the training data. If $\lambda$ is too large, we will obtain a solution that has a small norm, but is not able to well separate the classes. If $\lambda$ is too small, we will get a solution that has good separation on the training set, but may have poor generalization.
+
+Note that the non-regularized model is invariant to linear transformations of the feature vectors. On the other hand, the regularized version of the model is not invariant. It is therefore useful, in some cases, to pre-process data so that dynamic ranges of different features are similar. Cross-validation can help identify good pre-processing strategies.
+
+Common preprocessing strategies that may be worth trying are: center the data $x'_i = x_i - \mu$, standardize variances, whitening the covariance matrix (ie normalize variances while making features uncorrelated), length normalization $x'_i = \frac{x_i}{|x_i|}$.
+
+The logistic regression score can be interpreted as the logarithm of the ratio between class posterior probabilities. The model parameters have been trained to optimize the probability of the training set labels. Therefore, the model will implicitly reflect the empirical class prior of the training set. The model posterior probabilities are thus suited for applications whose effective prior is close to the empirical training set prior, but may provide poor performance for different applications.
+
+To soften this issue, we can recover a score that behaves like a log-likelihood ratio by subtracting from the score $s$ the empirical prior log-odds of the training set $\log \frac{n_T}{n_F}$:
+
+
+\begin{equation*}
+s_{llr} = w^T x + b - \log \frac{n_T}{n_F} = w^T x + b - \log \frac{\pi_{Temp}}{1-\pi_{Temp}}
+\end{equation*}
+
+We can then use $s_{llr}$ as a log-likelihood ratio. For a given application $(\pi_T, 1-\pi_T, C)$ we can compute decisions by comparing $s_{llr} \gtrless \log \frac{\pi_T}{1 - \pi_T}$.
+
+While this allows for effective decisions for the model $w, b$, the orientation of $w$ is still optimized for the training set empirical prior. Changing the threshold allows us to select a better decision rule, but only among hyperplanes that are orthogonal to $w$.
+
+If we knew the application prior $\pi_T$ before training the model, then it may be preferable to directly optimize the separation rule for the target application prior. The model is sometimes called prior-weighted logistic regression:
+
+
+\begin{equation*}
+R(w) = \frac{\lambda}{2} \|w\|^2 + \frac{\pi_T}{n_T} \sum_{i:z_i=1} \ell(-z_i s_i) + \frac{1-\pi_T}{n_F} \sum_{i:z_i=-1} \ell(-z_i s_i)
+\end{equation*}
+
+The standard logistic regression model corresponds to the prior-weighted logistic regression model trained with the training set empirical prior $\pi_T^{emp}$.
+
+Also in this case, we can compute:
+
+
+\begin{equation*}
+s_{llr} = w^T x + b - \log \frac{\pi_T}{1-\pi_T}
+\end{equation*}
+
+Regularization is important, especially when we do not reduce the dimensionality, since we have more parameters to estimate, so over-fitting is more severe. If we regularize too much, the model performs poorly again.
+
+We now consider a problem with $K$ classes, labeled from 1 to $K$.
+
+To extend the Logistic Regression model to multiclass tasks we start again from the form of the posterior probabilities of the linear Gaussian classifier with uniform priors:
+
+
+\begin{equation*}
+\log P(C = j | x) = w_j^T x + b_j - k(x)
+\end{equation*}
+
+where $k(x)$ collects terms that depend on the sample $x$, but not on the class $j$. It follows that, as a function of the class:
+
+
+\begin{equation*}
+P(C = j | x) \propto e^{w_j^T x + b_j}
+\end{equation*}
+
+Since we have a closed-set classification problem, then:
+
+
+\begin{equation*}
+\sum_{j=1}^K P(C = j | x) = 1
+\end{equation*}
+
+The normalization factor for $P(C = j | x)$ is thus $\sum_{j=1}^{K} e^{w_j^T x + b_j}$ and the posterior probability corresponds to:
+
+
+\begin{equation*}
+P(C = k | x) = \frac{e^{w_k^T x + b_k}}{\sum_j e^{w_j^T x + b_j}}
+\end{equation*}
+
+The function $f(s) = \left(\frac{e^{s_1}}{\sum_j e^{s_j}}, \ldots, \frac{e^{s_K}}{\sum_j e^{s_j}}\right)$ is called softmax.
+
+Given the model parameters:
+
+
+\begin{equation*}
+W = [w_1, ..., w_K], \quad b = [b_1, ..., b_K]^T
+\end{equation*}
+
+the logistic regression model allows computing the probability of each class:
+
+
+\begin{equation*}
+P(C = k | W, b, x) = \frac{e^{w_k^T x + b_k}}{\sum_j e^{w_j^T x + b_j}}
+\end{equation*}
+
+We can express the log-probability of the training class labels as:
+
+
+\begin{equation*}
+\ell(W, b) = \sum_{i=1}^n \log P(C_i = c_i | X_i = x_i, W, b)
+\end{equation*}
+
+If we consider sample $x_i$, its class posterior distribution is thus a categorical distribution:
+
+
+\begin{equation*}
+C_i | W, b, X_i = x_i \sim Cat(y_i)
+\end{equation*}
+
+where:
+
+
+\begin{equation*}
+y_{ik} = \frac{e^{w_k^T x_i + b_k}}{\sum_j e^{w_j^T x_i + b_j}}
+\end{equation*}
+
+Remember that the categorical density $P(C_i = c_i | X_i = x_i, W, b)$ can be expressed using a 1-of-K encoding, as:
+
+
+\begin{equation*}
+\log P(C_i = c_i | X_i = x_i, W, b) = \log P(C_i = c_i | y_i) = \sum_{k=1}^K z_{ik} \log y_{ik}
+\end{equation*}
+
+where $z_i$ is a vector that has all components equal to 0, except for the index $c_i$ which is equal to 1.
+
+The labels log-probability can thus be expressed as:
+
+
+\begin{equation*}
+\ell(W, b) = \sum_{i=1}^n \sum_{k=1}^K z_{ik} \log y_{ik}
+\end{equation*}
+
+The terms $y_{ik} = \frac{e^{w_k^T x_i + b_k}}{\sum_j e^{w_j^T x_i + b_j}}$ represent the distribution for the class labels according to the Logistic Regression model.
+
+The expression:
+
+
+\begin{equation*}
+H(z_i, y_i) = -\sum_{k=1}^K z_{ik} \log y_{ik}
+\end{equation*}
+
+represents the multiclass cross-entropy between the observed and predicted label distributions for sample $x_i$.
+
+We estimate $W$ and $b$ as to maximize the likelihood for the training labels. The ML solutions is again the solution that minimizes the average cross-entropy:
+
+
+\begin{equation*}
+\arg\max_{W, b} \ell(W, b) = \arg\max_{W, b} \sum_{i=1}^n H(z_i, y_i) = \arg\min_{W, b} \sum_{i=1}^n H(z_i, y_i)
+\end{equation*}
+
+Compared to the binary case, the model is over-parametrized, ie we can add a constant vector to all terms $w_i$ without changing the model.
+
+Finally, we can cast the problem as a minimization of a loss function. We rewrite the objective in terms of class labels $c$ as:
+
+
+\begin{equation*}
+J(W, b) = -\sum_{i=1}^n \sum_{k=1}^K z_{ik} \log y_{ik}
+\end{equation*}
+
+
+\begin{equation*}
+= -\sum_{i=1}^n \log \frac{e^{w_{c_i}^T x_i + b_{c_i}}}{\sum_{c=1}^K e^{w_c^T x + b_c}}
+\end{equation*}
+
+
+\begin{equation*}
+= \sum_{i=1}^n [\log \sum_{c=1}^K e^{w_c^T x + b_c} - w_{c_i}^T x_i - b_{c_i}]
+\end{equation*}
+
+
+\begin{equation*}
+= \sum_{i=1}^n \ell(x_i, c_i, W, b)
+\end{equation*}
+
+where $\ell$ is also called softmax loss.
+
+We can add a regularization term to reduce over-fitting. We thus look for the minimizer of:
+
+
+\begin{equation*}
+R(W, b) = \Phi(W) + \frac{1}{n} J(W, b)
+\end{equation*}
+
+We can replace the average cross-entropy with prior-weighted average cross entropy to account for priors that are different from the empirical training set prior.
+
+Logistic regression can be applied not only to the original feature space, but also to an expanded feature space obtained by transforming the input features through a mapping $\phi(x)$. By choosing an appropriate transformation, it is possible to make the classes approximately linearly separable in the new space, even if they are not separable in the original space. In this expanded space, logistic regression computes linear separation rules for the transformed features, which correspond to non-linear separation surfaces (such as quadratic boundaries) in the original feature space. However, increasing the complexity of the transformation can rapidly increase the dimensionality of the feature space, which may lead to higher computational costs and a greater risk of overfitting.
+
+We can thus train a Logistic Regression model using feature vectors $\phi(x)$ rather than $x$. This space is also called expanded feature space. The Logistic Regression model (both for binary and multiclass) allows computing linear separation rules for the transformed features $\phi(x)$. Since expressions $w^T \phi(x) + c$ correspond to quadratic forms in the original feature space, we are actually estimating quadratic separation surfaces in the original space.
+
+In general, we can consider a transformation $\phi(x)$ of our feature space such that our classes are approximately linearly separable in the expanded feature space. We have to pay attention that the dimensionality of the expanded feature space can grow very quickly.

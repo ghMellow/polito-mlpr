@@ -1,0 +1,149 @@
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.7em}
+
+\section*{Score Calibration and Fusion}
+
+\textbf{Score calibration and fusion} are techniques used to improve the reliability and effectiveness of classification systems, especially when combining outputs from multiple models or sources. \textbf{Score calibration} refers to the process of transforming the raw scores produced by a classifier into well-calibrated probabilities or likelihood ratios, so that they accurately reflect the true likelihood of each class. \textbf{Score fusion} involves combining the scores from different classifiers or systems to make a more robust and accurate final decision. These methods are essential in applications where decisions must be based on multiple sources of information or where the interpretation of scores as probabilities is important for downstream tasks.
+
+In many cases, the scores output by classifiers do not have a clear probabilistic interpretation and do not represent log-likelihood ratios for the application evaluation population. For example, SVM scores cannot be directly interpreted as probabilities. In regularized logistic regression, strong regularization can distort the scores so that they no longer accurately reflect class probabilities. Even generative models can produce poorly calibrated scores if they suffer from overfitting or if there is a mismatch between the training and test data distributions. As a result, making decisions directly based on classifier scores can lead to miscalibration.
+
+For binary problems we have seen that decision rules take the form of a comparison of the classifier score with a threshold. To reduce miscalibration we can adopt two strategies. We can use a validation set to find a (close-to) optimal threshold for a given application. Note that we need to know the target application when estimating the threshold. Alternatively, we can look for functions that transform the classifier scores into approximately well-calibrated LLRs, so that optimal decisions can be obtained for different applications. Note that it is application independent and that prior knowledge of the application can still help for some models, but a rough estimate of possible applications is often sufficient.
+
+Let's consider the second approach. We want to compute a transformation function $f$ that maps a classifier score $s$ into a well-calibrated score $s_{cal} = f(s)$. We consider monotone functions $f$, as to preserve the fact that higher non-calibrated scores should favor class $H_T$ and lower non-calibrated scores should favor class $H_F$.
+
+There are several methods to find a monotonic calibration function that transforms classifier scores into well-calibrated scores. \textbf{Isotonic regression} is a flexible, non-parametric approach that fits a monotonic function to the data. \textbf{Prior-weighted logistic regression} assumes an affine (linear) calibration function and incorporates class priors, making it simple and effective for many applications. \textbf{Generative score models}, on the other hand, assume a specific probabilistic model for the distribution of scores in each class and estimate the calibration function under these constraints. These methods help ensure that the calibrated scores can be interpreted as reliable probabilities or likelihood ratios.
+
+Isotonic regression is a non-linear, monotonic transformation that provides optimal calibration for the data it is trained on. The resulting function is piecewise non-linear, which means it is made up of several linear or constant segments joined together. This approach may require interpolation for scores that were not seen during training, and it does not allow extrapolation outside the range of training scores. Additionally, isotonic regression can be computationally expensive to evaluate when the calibration training set is large.
+
+Score models require assumptions about the calibration transformation, such as using affine (linear) mapping, or about the distribution of class scores. These models are estimated over a training set and allow for extrapolation outside the range of training scores. They are typically fast to evaluate, but may provide a good fit only for a limited range of operating points. An example of a score model is prior-weighted logistic regression. In the prior-weighted logistic regression, the non-calibrated scores are treated as 1-D feature vectors and an affine mapping is assumed from the non-calibrated scores to the calibrated scores:
+
+\begin{equation*}
+f(s) = \alpha s + \gamma
+\end{equation*}
+
+Since $f(s)$ should produce well-calibrated LLRs, $f(s)$ can be interpreted as the log-likelihood ratio for the two class hypotheses:
+
+\begin{equation*}
+f(s) = \log \frac{f_{S|C}(s|H_T)}{f_{S|C}(s|H_F)} = \alpha s + \gamma
+\end{equation*}
+
+The class posterior probabilities for prior $\tilde{\pi}$ correspond to:
+
+\begin{equation*}
+\log \frac{P(C=H_T|s)}{P(C=H_F|s)} = \alpha s + \gamma + \log \frac{\tilde{\pi}}{1-\tilde{\pi}} = \alpha s + \beta
+\end{equation*}
+
+We can employ the (non-regularized) prior-weighted logistic regression model to learn the model parameters $\alpha, \beta$ from a set of training scores (we will refer to the set of samples employed to estimate the calibration parameters as calibration training set in the following). In practice, we are treating scores as if they were 1-D feature vectors. As for model training and validation set, also the calibration set should be an independent dataset that does not overlap with neither the model training nor the validation set. The calibration transformation corresponds to the transformation of a prior-weighted logistic regression model. Once we have estimated $\alpha$ and $\beta$, the calibrated score $f(s)$ can be computed as:
+
+\begin{equation*}
+f(s) = \alpha s + \gamma = \alpha s + \beta - \log \frac{\tilde{\pi}}{1-\tilde{\pi}}
+\end{equation*}
+
+Note that we have to specify a prior $\tilde{\pi}$, and we are still effectively optimizing the calibration for a specific application $\tilde{\pi}$. However, often this approach will provide good calibration for a wider range of different applications similar to the target one. We can also modify the prior-weighted logistic regression objective to compute directly $\alpha$ and $\gamma$:
+
+\begin{equation*}
+R(\alpha,\gamma) = \sum_i w_i \log \left(1 + e^{-z_i (\alpha s + \gamma + \log \frac{\tilde{\pi}}{1-\tilde{\pi}})}\right), \quad w_i = \begin{cases} \tilde{\pi}/n_T & \text{if } z_i = +1 \\ (1-\tilde{\pi})/n_F & \text{if } z_i = -1 \end{cases}
+\end{equation*}
+
+Alternatively to logistic regression, we can employ generative models to estimate calibrated LLRs. We model the class-conditional score distribution for the two classes $S \mid H_T$ and $S \mid H_F$, and the calibration transformation is given by the LLR for the score model:
+
+\begin{equation*}
+f_{cal}(s) = \log \frac{f_{S|H_T}(s)}{f_{S|H_F}(s)}
+\end{equation*}
+
+For example, we can employ a Gaussian model to estimate the two densities:
+
+\begin{equation*}
+f_{S|H_T}(s) = \mathcal{N}(s|\mu_T, v_T), \quad f_{S|H_F}(s) = \mathcal{N}(s|\mu_F, v_F)
+\end{equation*}
+
+Tied models $v_T = v_F = v$ are usually employed, as they result in monotonic transformations.
+
+In all cases, we need a calibration set to estimate the transformation. The calibration set must differ from the validation set and the evaluation sets, otherwise we would get biased results. Typically, there are two scenarios. In the first scenario, miscalibration is caused by non-probabilistic scores, or by overfitting or underfitting models, but evaluation and training populations are similar. In this case, the calibration set can be extracted from the training set material. Calibration in this setting allows us to recover a probabilistic interpretation of the scores. Since the calibration model is trained on 1-D data, the risk of overfitting is drastically reduced and regularization term is usually not needed in the calibration objective. In the second scenario, miscalibration is due to a mismatch between the training population and the application or evaluation population. Here, the calibration set (and, if we want to assess calibration quality, the calibration validation set as well) should mimic the application population. It is important to collect data that matches the characteristics of the application scenario. However, the amount of required matching data is usually smaller than what is needed to train a full classifier. Some models, eg Gaussian models, can be extended to exploit unlabeled samples through unsupervised or semi-supervised training, which are less expensive to acquire.
+
+The approach we followed up to now would require that we split the training material in 3 parts:
+
+\begin{itemize}
+	\item Model training set
+	\item Calibration training set (samples that are scored with the trained classifier and are used to compute calibration parameters)
+	\item (Calibration) validation set (samples that are scored with the trained model and whose scores are calibrated with the calibration model, used to evaluate the performance of the complete system, including the calibration model)
+\end{itemize}
+
+\textbf{Calibration training set}: Sono campioni che vengono valutati (scored) dal classificatore già addestrato. I punteggi ottenuti vengono usati per stimare i parametri del modello di calibrazione (ad esempio, per la regressione logistica di calibrazione). 
+
+\textbf{Calibration validation set}: Sono campioni che vengono anch'essi valutati dal classificatore e poi calibrati dal modello di calibrazione. Questo set serve per valutare le prestazioni finali del sistema completo (classificatore + calibrazione), senza rischio di overfitting sui dati usati per stimare la calibrazione.
+
+Splits can be performed in several ways, for simplicity, we assume that our calibration training and validation sets are extracted from our former validation set. This allows us to re-use models we already trained.
+
+Configurazione corrente (senza dataset di calibrazione):
+
+\texttt{Training set:  [ Model train | Validation ]}
+
+Train -- Calibration -- Validation (split a 3 parti):
+
+\texttt{Training set:  [ Model train | Calibration train | Validation ]}
+
+Calibration e validation estratti dal former validation set:
+
+\texttt{Training set:  [ Model train |——————— Former validation ————————|]}
+\texttt{                              [ Calibration train | (Cal.) Validation ]}
+
+An issue is that the calibration and validation sets become both smaller. If we enlarge the calibration set, our evaluation metrics computed over the validation set become less reliable. If we reduce the calibration set, our calibration model becomes less reliable. In general, all three partitions would benefit from more data. A possible approach to address the limited amount of data is to resort to K-fold cross-validation. Single-fold partitions the dataset in separate sets. K-fold cross-validation extends this approach by repeatedly splitting the data into model training, calibration training, and calibration validation sets in K different ways. This ensures that every sample is used at least once for each role---training the classifier, training the calibration model, and evaluating the complete system---making the most efficient use of all available data.
+
+We start considering a simple set-up, where we need two partitions: these could be model training and validation sets extracted from a training dataset, but also could be the calibration and actual validation sets extracted from our former validation set. In both cases, we would like to use the data to train some model and to evaluate its performance. K-fold cross-validation splits the dataset into K partitions, usually with similar numbers of samples and preserving the original class ratios. The model is trained iteratively using K-1 folds, while the remaining fold is used for scoring. After all iterations, the scores from each fold are pooled together, and the desired metric is evaluated on this combined set. This metric is then used for model selection or hyperparameter tuning. It is important that all K models are trained with the same setup, including identical preprocessing steps and hyperparameter values. For some metrics, it is essential to compute the metric over the pooled scores from all folds, rather than averaging the metric computed separately on each fold. Averaging per-fold metrics can lead to biased results and should be avoided. Additionally, the same threshold must be used for all scores when evaluating the metric.
+
+Once we have selected the approach (model selection) and tuned the model parameters, we still need to choose which model to use in practice. We have trained K models, all of them using a subset of the data. We cannot choose any of them based on their performance on the corresponding validation fold. Fold data are different, and the comparison would then make little sense. Moreover, in many cases increasing the training set size is beneficial, but each model was trained using only approximately a fraction $\dfrac{K-1}{K}$ of the training set. The solution is to train one more model over the whole training set, using the method we selected and the hyperparameters we estimated in the previous step. The model $M$ will then be used to compute the scores for the application data. Note that the model selection and hyperparameter tuning has been performed using models that are different from $M$. The selected values may not generalize well for the final model. Furthermore, each model $M_i$ may be affected by different levels of miscalibration. Ideally, to minimize these issues we want each model $M_i$ to be as similar as possible to the final model $M$.
+
+\textbf{Leave-one-out (LOO) cross validation} is a special case of K-fold cross-validation where K is set to the total number of training samples $N$. In this approach, each time a single sample is left out from the training set, and the model is trained on all the remaining $N-1$ samples. The left-out sample is then scored using the trained model. This process is repeated for every sample, resulting in a pooled validation set of $N$ samples, each evaluated by a model trained on nearly all the data. While the models obtained in each iteration are usually very similar, LOO requires training as many models as there are samples, which can be computationally expensive for large datasets. We choose K as large as we can afford. Large values of K lead to more robust analysis and more time required. Small values of K lead to less robust analysis and less time required.
+
+We can extend the approach to deal with our three-set partitioning using a two-step approach. The first step is to apply K-fold to train the classifier:
+\begin{itemize}
+	\item Train K classifiers, each without fold $k$ (model $R_k$)
+	\item Score each fold $k$ with model $R_k$
+	\item Train a classifier $R_F$ over the whole training set
+	\item Pool the scores of each fold to obtain a score set, that we will use as calibration set
+\end{itemize}
+
+The second step is to apply K-fold over the calibration scores, using a different randomized shuffle:
+\begin{itemize}
+	\item Train K calibration models $C_k$
+	\item Train a calibration model over all pooled scores $C_F$
+	\item Calibrate the scores of each fold $k$ with model $C_k$
+	\item Pool the calibrated scores and evaluate the model performance over the pooled scores to choose the best configuration
+	\item Choose the classification system according to pooled scores results. Classify the application samples: apply classification model $R_F$ for the chosen system followed by its calibration model $C_F$.
+\end{itemize}
+
+In many cases, we may have competing models that achieve similar performance. Sometimes, even when their overall performance differs, different classifiers can extract different information from the feature vectors. This raises the question: can we combine these models to further improve classification performance for a given test sample? A simple approach is to use a majority-voting scheme. For each sample to be classified, we compute the prediction of each classifier under consideration and assign the label that is selected most frequently by the models. While this method can be effective, it has some limitations: it requires tie-breaking rules in case of a draw, and it does not take into account the confidence or strength with which each classifier supports its labeling hypothesis.
+
+A tie-breaking rule is a procedure used to decide the final label when two or more classes receive the same number of votes from the classifiers. For example, one might randomly select among the tied classes or always choose a specific class in case of a tie.
+
+Consider a binary task with well calibrated scores and three classifiers that provide, for a sample $x$, the scores:
+
+\begin{equation*}
+s_1 = 10.0,\quad s_2 = -0.1,\quad s_3 = -0.1
+\end{equation*}
+
+If our threshold is 0, then majority voting would label the sample as class $H_F$. The scores $s_1, s_2, s_3$ tell us that two systems are very uncertain, with a slight bias towards class $H_F$, but the first one is very confident in favor of class $H_T$.
+
+If our models provide scores as output, then we can try combining the scores for a given sample. For example, we may try computing the average or the sum of the scores. If our models provide LLRs, and the class-conditional likelihoods provided by the systems were independent, then the sum would be correct. If our models are strongly correlated the sum becomes incorrect, as some systems are providing only partial or even no additional information. We can consider weighting the contribution of the different system terms. Given scores $s_1 \ldots s_m$ for a test sample $x$, we can compute a fused score as:
+
+\begin{equation*}
+s_{fused} = \alpha_1 s_1 + \alpha_2 s_2 + \alpha_3 s_3 + \cdots + \alpha_m s_m + \gamma
+\end{equation*}
+
+We have the problem of estimating the weights $\alpha_i$ and the bias term $\gamma$. If we stack the scores and the weights as:
+
+\begin{equation*}
+s = \begin{pmatrix} s_1 \\ \vdots \\ s_m \end{pmatrix}, \quad \alpha = \begin{pmatrix} \alpha_1 \\ \vdots \\ \alpha_m \end{pmatrix}
+\end{equation*}
+
+the fused score can be represented as:
+
+\begin{equation*}
+s_{fused} = \alpha^T s + \gamma
+\end{equation*}
+
+The output score $s_{fused}$ is obtained as an affine transformation of the score "feature" vector $\mathbf{s}$. We can then employ a method like logistic regression to estimate the weights $\boldsymbol{\alpha}$ and the bias term $\gamma$ (if we want a LLR-like fused scores we need to compensate the logistic regression model parameters for the training prior log-odds as in the calibration case to obtain $\gamma$). This is similar to calibration and typically provides calibrated scores as output, but rather than 1-D samples we now have m-dimensional vectors, containing the scores of m classifiers for each sample. We can exploit the calibration partition of our set to estimate the score fusion weights. If we had a single system, we would obtain exactly the calibration procedure we analyzed earlier.
+
+For multiclass problems the optimal decisions cannot be represented anymore as a comparison of a score with a threshold. In this case, we have seen that it's more complex to separate the contributions to the cost due to poor discrimination and poor calibration. Calibration methods can be extended to calibrate also scores of multiclass recognizers, so that they can be interpreted as class-conditional log-likelihoods that can then be combined with application priors and costs to obtain optimal decisions. Typically, multiclass logistic regression models are employed to estimate calibration or fusion weights and biases for the different classes and classifiers.

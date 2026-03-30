@@ -1,0 +1,82 @@
+%!TEX root = ../MLPR.tex
+% Impostazioni di formattazione secondo le linee guida
+\setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+\setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+
+$P : \mathcal{A} \longrightarrow \mathbb{R}^+, \quad P(\Omega) = 1$
+
+$P\!\left(\bigcup_{n=1}^{\infty} A_n\right) = \sum_{n=1}^{\infty} P(A_n) \quad \text{(countable additivity, eventi mutuamente esclusivi)}$
+
+$P(\emptyset) = 0, \quad P(A^C) = 1 - P(A), \quad P(A \cup B) = P(A) + P(B) - P(A \cap B)$
+
+$P(A|B) = \frac{P(A \cap B)}{P(B)}$
+
+$P(B|A) = \frac{P(A|B)\,P(B)}{P(A)} \quad \text{(Bayes formula)}$
+
+$P(A \cap B) = P(A)\,P(B) \iff A \perp\!\!\!\perp B \quad \text{(indipendenza)}$
+
+$X : \Omega \longrightarrow \mathbb{R}, \quad P(X \leq x) = P\!\left(\{\omega \in \Omega : X(\omega) \leq x\}\right)$
+
+$F_X(x) = P(X \leq x)$
+
+$f_X(x) \geq 0, \quad \int_{-\infty}^{+\infty} f_X(x)\,dx = 1$
+
+$f_X(x) = \frac{d}{dx}F_X(x)$
+
+$P(a \leq X \leq b) = \int_a^b f_X(x)\,dx$
+
+$f_{\mathbf{X}}(\mathbf{x}) = \frac{\partial^m}{\partial x_1 \cdots \partial x_m}F_{\mathbf{X}}(\mathbf{x}), \quad f_{X_1}(x_1) = \int_{\mathbb{R}^{m-1}} f_{\mathbf{X}}(x_1, y_2, \ldots, y_m)\,dy_2\cdots dy_m$
+
+$f_{X|Y}(x|y) = \frac{f_{X,Y}(x,y)}{f_Y(y)}, \quad f_{Y|X}(y|x) = \frac{f_{X|Y}(x|y)\,f_Y(y)}{f_X(x)}$
+
+$E_X[X] = \int_S x\, f_X(x)\,dx$
+
+$\text{var}(X) = E_X\!\left[(X - E_X[X])^2\right] = E_X[X^2] - E_X[X]^2$
+
+$E_X\!\left[X^k\right] = \int_S x^k f_X(x)\,dx \quad (k\text{-th moment}), \qquad E_X\!\left[(X - E_X[X])^k\right] \quad (\text{central } k\text{-th moment})$
+
+$E_X[g(X)] = \int_S g(x)\, f_X(x)\,dx$
+
+$\text{cov}(X, Y) = E_{X,Y}[XY] - E_X[X] \,E_Y[Y]$
+
+$\Sigma = \text{cov}(\mathbf{X}) = E\!\left[(\mathbf{X} - E[\mathbf{X}])(\mathbf{X} - E[\mathbf{X}])^T\right] = E\!\left[\mathbf{X}\mathbf{X}^T\right] - E[\mathbf{X}]\,E[\mathbf{X}]^T$
+
+\vspace{1em}
+
+$X \sim \text{Ber}(p): \quad P_X(x) = \text{Ber}(x|p) = p^x(1-p)^{1-x}$
+
+$E[X] = p, \quad \text{var}(X) = p(1-p)$
+
+$X \sim \text{Bin}(n,p): \quad P_X(x) = \binom{n}{x}p^x(1-p)^{n-x}$
+
+$X_1 \perp\!\!\!\perp \cdots \perp\!\!\!\perp X_n \sim \text{Ber}(p) \implies Y = \sum_i X_i \sim \text{Bin}(n,p)$
+
+$E[X] = np, \quad \text{var}(X) = np(1-p)$
+
+$\mathbb{1}[C] = \begin{cases}1 & \text{if } C \text{ is true} \\ 0 & \text{otherwise}\end{cases}$
+
+$X \sim \text{Cat}(\mathbf{p}): \quad f_X(x) = \prod_i p_i^{\,\mathbb{1}[x=i]}, \qquad \mathbf{p} = (p_1,\ldots,p_K),\quad \sum_{i=1}^K p_i = 1$
+
+$X \sim \text{Mul}(n,\mathbf{p}): \quad f_X(\mathbf{x}) = \frac{n!}{x_1!\cdots x_K!}\prod_{i=1}^{K} p_i^{x_i}$
+
+$X_1 \perp\!\!\!\perp \cdots \perp\!\!\!\perp X_n \sim \text{Cat}(\mathbf{p}) \implies Y = \sum_{i=1}^n X_i \sim \text{Mul}(n,\mathbf{p})$
+
+$X \sim \mathcal{N}(\mu, \sigma^2): \quad f_X(x) = \frac{1}{\sqrt{2\pi\sigma^2}}\,\exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)$
+
+$E[X] = \mu, \quad \text{var}(X) = \sigma^2, \quad \lambda = \frac{1}{\sigma^2} \; \text{(precision)}$
+
+$\mathbf{X} \sim \mathcal{N}(\mathbf{0}, I): \quad f_{\mathbf{X}}(\mathbf{x}) = (2\pi)^{-N/2}\,e^{-\frac{1}{2}\mathbf{x}^T\mathbf{x}}$
+
+$\mathbf{X} = A\mathbf{Y} + \boldsymbol{\mu}, \quad \mathbf{Y} \sim \mathcal{N}(\mathbf{0}, I), \quad \Sigma = AA^T \implies \mathbf{X} \sim \mathcal{N}(\boldsymbol{\mu}, \Sigma)$
+
+$\mathbf{X} \sim \mathcal{N}(\boldsymbol{\mu}, \Sigma): \quad f_{\mathbf{X}}(\mathbf{x}) = (2\pi)^{-N/2}|\Sigma|^{-1/2}\exp\!\left(-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu})^T\Sigma^{-1}(\mathbf{x}-\boldsymbol{\mu})\right)$
+
+$\Lambda = \Sigma^{-1} \quad \text{(precision matrix)}$
+
+$\frac{S_N - N\mu}{\sigma\sqrt{N}} \xrightarrow{d} \mathcal{N}(0,1), \quad S_N = \sum_{i=1}^N X_i$
+
+$\lim_{n \to \infty} F_{S_N}(x) = F_{\mathcal{N}(0,1)}(x)$
+
+% Central Limit Theorem: English translation
+\textbf{Central Limit Theorem}: given a sufficiently large sample size, the sum of i.i.d. (independent and identically distributed) random variables, each with finite mean and variance, will be approximately normally distributed, regardless of the original distribution of the variables.

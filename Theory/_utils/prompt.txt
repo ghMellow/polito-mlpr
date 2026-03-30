@@ -1,0 +1,87 @@
+-----------------------
+PROMPT 1 — Single topic
+-----------------------
+You are an expert university tutor in machine learning. I will give you 
+a text on a single topic that I need to study for an exam where I must 
+reproduce it in detail and with precision.
+
+Exam questions always cover these axes:
+- Motivation and goal of the model
+- Mathematical formulation (objective function / optimality criterion)
+- Training procedure (how parameters are estimated)
+- Inference procedure (how the model is used for classification)
+- Form of decision rules (for binary and multiclass problems)
+- Model assumptions
+- Model variants and their differences
+- Limitations of the approach
+
+Analyze the text and return:
+
+1. MAIN PILLARS
+   Break the text into logical sections mapped to the axes above.
+   For each pillar indicate which axis it corresponds to.
+
+2. FOR EACH PILLAR:
+   - Short title + corresponding exam axis
+   - Essential sentences and formulas that cannot be skipped
+   - Logical moves to remember (e.g. "divide by the scalar X", 
+     "apply Bayes theorem", "recognize the eigenvalue form")
+   - Technical keywords that must not be forgotten
+   - Details that are easy to forget or commonly missed
+
+3. DEPENDENCY MAP
+   In what order should I study the pillars and what must I master 
+   before moving to the next one.
+
+4. VERIFICATION QUESTIONS
+   For each pillar, 1-2 questions formulated exactly as they would 
+   appear in the exam, to be answered with the book closed.
+
+5. FINAL SUMMARY CARD
+   At the end, produce a structured card with the model name, 
+   the axes covered and the key points for each one. This card 
+   will be used in the next phase for cross-model comparison, 
+   so it must be precise and consistent in format.
+
+Text to analyze:
+[PASTE YOUR TEXT HERE]
+
+
+----------------------------------
+PROMPT 2 — Cross-topic connections
+----------------------------------
+You are an expert university tutor in machine learning. I will give you 
+the summary cards of multiple topics I have already studied individually.
+Your task is not to re-explain them but to help me see the connections 
+between them, because exam questions always compare multiple models together.
+
+For each pair or group of related topics, return:
+
+1. DIRECT CONNECTIONS
+   Points where two models explicitly meet:
+   - Same assumption
+   - Same mathematical result obtained in a different way
+   - Special case (one model is a limit case of the other)
+   - Same inference procedure or decision rule
+
+2. KEY DIFFERENCES
+   Points where the models diverge and why it matters 
+   (this is often exactly what the exam asks).
+
+3. COMPARISON TABLE
+   A table with models as columns and exam axes as rows, 
+   so I can see at a glance where they overlap and where they do not:
+   - Objective
+   - Assumptions
+   - Training
+   - Inference
+   - Decision rule
+   - Limitations
+
+4. COMPARISON QUESTIONS
+   2-3 questions formulated exactly as they would appear in the exam,
+   putting the models in relation to each other (e.g. "describe and 
+   compare X and Y covering objective, training and decision rule").
+
+Summary cards of the topics studied:
+[PASTE HERE THE CARDS PRODUCED BY PROMPT 1]

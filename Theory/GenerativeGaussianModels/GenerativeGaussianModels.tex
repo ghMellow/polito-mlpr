@@ -1,0 +1,187 @@
+
+% GENERATIVE GAUSSIAN MODELS
+\setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+\setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+
+A \textbf{generative Gaussian model} is a generative probabilistic model that assumes the data for each class follow a multivariate Gaussian distribution, with its own mean vector and covariance matrix.
+This model estimates the parameters of the multivariate Gaussian distributions for each class and uses Bayes' theorem to compute the posterior probability that a new sample belongs to each class.
+According to the optimal Bayes decision rule, the model assigns the sample to the class with the highest probability.
+This model is called generative because it explicitly models the data generation process for each class, not just the decision boundary.
+
+Let's consider a closed set classification problem, where we want to assign a test point $x_t$ to one of $k$ possible classes. We model $x_t$ as a realization of a continuous random variable $X_t$, and its class label as a random variable $C_t \in \{1 \ldots k\}$. All samples are assumed to be jointly i.i.d..
+
+Let the joint density of $(X, C)$ be:
+
+$$f_{X_t,C_t}(x_t, c) = f_{X,C}(x_t, c)$$
+
+From Bayes' theorem we can compute the class posterior probability:
+
+$$P(C_t = c \mid X_t = x_t) = \frac{f_{X,C}(x_t, c)}{\sum_{c' \in C} f_{X,C}(x_t, c')}$$
+
+We factorized the joint density in class likelihood and class prior:
+
+$$f_{X,C}(x_t, c) = f_{X|C}(x_t \mid c) \cdot P_C(c)$$
+
+The class likelihood $f_{X|C}(x \mid c,\, \theta)$ describes the distribution of the data within each class and depends on the model parameters.
+
+The class prior $P_C(c)$, on the other hand, reflects the probability of a sample belonging to a class before seeing the data and is determined by the application context, not by the model parameters.
+
+It's important to distinguish between the application prior, which represents the true class probabilities in the real world, and the empirical prior, which is simply the class frequency observed in the dataset. If the application prior is unknown, we often estimate it using the empirical prior, but these may not always match, especially if the dataset is not representative of the real scenario.
+
+Let's move on.
+
+To proceed, we assume that the class likelihood for each class can be modeled by a multivariate Gaussian distribution:
+
+$$(X_t \mid C_t = c) \sim \mathcal{N}(\mu_c,\, \Sigma_c)$$
+
+We have one mean and one covariance matrix for each class. If we knew $\mu_c,\, \Sigma_c$, then we could compute the class likelihood as:
+
+$$f_{X_t|C_t}(x_t \mid c) = \mathcal{N}(x_t \mid \mu_c,\, \Sigma_c)$$
+
+We do not know the values for the model parameters $\theta = [(\mu_1, \Sigma_1) \ldots (\mu_k, \Sigma_k)]$, but, using the labeled training dataset $\mathcal{D} = \{(x_1, c_1) \ldots (x_n, c_n)\}$, we can learn them.
+
+We assume that, given the model parameters $\theta$, observations are i.i.d..
+
+We use ML estimation to compute the parameters.
+
+The data likelihood factorizes as:
+
+$$L(\theta) = \prod_{i=1}^{n} f_{X,C|\theta}(x_i, c_i \mid \theta) = \prod_{i=1}^{n} \mathcal{N}\!\left(x_i \mid \mu_{c_i}, \Sigma_{c_i}\right) P(c_i)$$
+
+Considering the log-likelihood:
+
+$$\ell(\theta) = \sum_{c=1}^{k} \ell_c(\mu_c, \Sigma_c) + \xi \,\,\, \qquad \ell_c(\mu_c, \Sigma_c) = \sum_{i \mid c_i = c} \log \mathcal{N}(x_i \mid \mu_c, \Sigma_c)$$
+
+The log-density for a Gaussian distribution $\mathcal{N}(\mu, \Sigma)$ is:
+
+$$\log \mathcal{N}(x \mid \mu, \Sigma) = -\frac{D}{2}\log 2\pi - \frac{1}{2}\log|\Sigma| - \frac{1}{2}(x - \mu)^T \Sigma^{-1}(x - \mu)$$
+
+The log-likelihood $\ell_c(\mu_c, \Sigma_c)$ can be rewritten in different ways:
+
+$$\ell_c(\mu_c, \Sigma_c) = \kappa + \frac{N_c}{2}\log|\Lambda_c| - \frac{1}{2}\,\mathrm{Tr}\!\left(\Lambda_c \sum_{i \mid c_i=c}(x_i - \mu_c)(x_i - \mu_c)^T\right)$$
+
+$$= \kappa + \frac{N_c}{2}\log|\Lambda_c| - \frac{1}{2}\,\mathrm{Tr}\!\left(\Lambda_c \sum_{i \mid c_i=c} x_i x_i^T\right) + \mu_c^T \Lambda_c \sum_{i \mid c_i=c} x_i - \frac{N_c}{2}\,\mu_c^T \Lambda_c \mu_c$$
+
+The log-likelihood depends on the data only through the sufficient statistics:
+
+$$Z_c = N_c, \qquad F_c = \sum_{i \mid c_i=c} x_i, \qquad S_c = \sum_{i \mid c_i=c} x_i x_i^T$$
+
+We can find the ML solution by setting the gradients to zero. From (2), the derivative w.r.t. $\mu_c$ gives:
+
+$$\mu_c^* = \frac{1}{N_c} \sum_{i \mid c_i=c} x_i$$
+
+From (1), the derivative w.r.t. $\Lambda_c$ gives:
+
+$$\Sigma_c^* = \Lambda_c^{-1} = \frac{1}{N_c} \sum_{i \mid c_i=c} (x_i - \mu_c^*)(x_i - \mu_c^*)^T$$
+
+We can now use the estimated parameters to compute the class likelihood:
+
+$$f_{X_t|C_t}(x_t \mid c) \approx \mathcal{N}(x_t \mid \mu_c^*,\, \Sigma_c^*)$$
+
+Let's consider a binary task, with 2 classes $C \in \{h_1, h_0\}$.
+We assign the label to a test sample $x_t$ according to the highest posterior probability, comparing $P(C = h_1 \mid x_t)$ to $P(C = h_0 \mid x_t)$. We can express the comparison in terms of class posterior ratio:
+
+$$\log r(x_t) = \log \frac{P(C = h_1 \mid x_t)}{P(C = h_0 \mid x_t)} = \log \frac{f_{X|C}(x_t \mid h_1)}{f_{X|C}(x_t \mid h_0)} + \log \frac{\pi}{1 - \pi}$$
+
+The first term is the log-likelihood ratio (LLR) and represents the ratio between the likelihood of observing the sample given that it belongs to $h_1$ or to $h_0$:
+
+$$\mathrm{llr}(x_t) = \log \frac{f_{X|C}(x_t \mid h_1)}{f_{X|C}(x_t \mid h_0)}$$
+
+The second term is the log-odds that is the logarithm of the ratio between the probability of an event and the probability of its complement.
+
+Our system should be designed to output the LLR, so that it remains as independent as possible from the specific application.
+
+The optimal decision is based on the comparison:
+
+$$\log r(x_t) \gtrless 0$$
+
+which means:
+
+$$\mathrm{llr}(x_t) = \log \frac{f_{X|C}(x_t \mid h_1)}{f_{X|C}(x_t \mid h_0)} \gtrless -\log \frac{\pi}{1-\pi}$$
+
+The LLR acts as a score, with a probabilistic interpretation. Greater scores values imply our system favors class $h_1$, lower values mean it favors class $h_0$. The decision requires comparing the LLR to a threshold $t$ that depends on the application, through the class prior probability $\pi$.
+
+We can compute the LLR and obtaining the decision function:
+
+$$\mathrm{llr}(x) = x^T A x + x^T b + c$$
+
+with:
+
+$$A = -\frac{1}{2}(\Lambda_1 - \Lambda_0)$$
+
+$$b = \Lambda_1\mu_1 - \Lambda_0\mu_0$$
+
+$$c = -\frac{1}{2}\!\left(\mu_1^T\Lambda_1\mu_1 - \mu_0^T\Lambda_0\mu_0\right) + \frac{1}{2}\!\left(\log|\Lambda_1| - \log|\Lambda_0|\right)$$
+
+A decision function assigns a class label to each point in the feature space. The decision surfaces are the boundaries in the feature space where the decision function changes value, that is, where the assigned class switches from one to another.
+
+Let's consider a multiclass task $C \in \{h_1, h_2 \ldots h_k\}$.
+
+We can compute posterior probabilities:
+
+$$P(C = h_i \mid x_t) = \frac{f_{X|C}(x_t \mid h_i)\,P(h_i)}{\displaystyle\sum_{h' \in \{h_1,\ldots,h_k\}} f_{X|C}(x_t \mid h')\,P(h')}$$
+
+Optimal decisions require choosing the class with highest posterior probability $c_t^* = \arg\max_h P(C = h \mid x_t)$. Posterior probabilities are proportional to $f_{X|C}(x_t \mid h)\,P(h)$, and the proportionality factor is the same for all classes.
+
+Optimal decision can thus be computed as:
+
+$$c_t^* = \arg\max_h\; f_{X|C}(x_t \mid h)\,P(h) = \arg\max_h\;\log f_{X|C}(x_t \mid h) + \log P(h)$$
+
+Again, the first term should be the output of the classifier, whereas the second term depends on the application.
+
+The Multivariate Gaussian model requires computing a mean and a covariance matrix for each class. It performs better if we have enough data to reliably estimate the covariance matrices. If the samples are few compared to their dimensionality, then the estimates can be inaccurate. The issue is more evident for covariance matrices, since they have $\dfrac{D(D+1)}{2}$ independent elements.
+
+\subsection{Naive Bayes}
+
+Naive Bayes is a model that assumes feature independence given the class. In other words, if, for each class, the different features (components) are approximately independent, we can assume that the class likelihood can be factorized over its components:
+
+$$f_{X|C}(x \mid c) \approx \prod_{j=1}^{D} f_{X^{[j]}|C}(x^{[j]} \mid c)$$
+
+In practice, this means that the class likelihood is the product of the density of each feature.
+
+Note that the assumption is not tied to any specific distribution: we can even employ a different distribution family for each component.
+
+Naive Bayes can simplify the estimation, but may perform poorly if data are high correlated.
+
+In the Naive Bayes Gaussian model, we assume that features are independent given the class, and that each feature follows a normal distribution within each class. The class likelihood is computed as the product of the normal densities for each feature, each with its own mean and variance for that class:
+
+$$f_{X^{[j]}|C}(x^{[j]} \mid c) = \mathcal{N}(x^{[j]} \mid \mu_{c,[j]},\, \sigma^2_{c,[j]})$$
+
+We can compute the ML estimates. We can optimize the log-likelihood independently for each component. For each component we have the log-likelihood of a normal model. So, the ML solution is:
+
+$$\mu_{c,[j]}^* = \frac{1}{N_c}\sum_{i \mid c_i = c} x_{i,[j]}, \qquad \sigma^2_{c,[j]} = \frac{1}{N_c}\sum_{i \mid c_i = c}(x_{i,[j]} - \mu_{c,[j]})^2$$
+
+We can observe that the density for a sample $x$ can be expressed as:
+
+$$f_{X|C}(x \mid c) = \prod_{j=1}^{D} \mathcal{N}(x^{[j]} \mid \mu_{c,[j]}^*,\, \sigma^2_{c,[j]}) = \mathcal{N}(x \mid \mu_c,\, \Sigma_c)$$
+
+where:
+
+$$\mu_c = \begin{pmatrix}\mu_{c,} \\ \mu_{c,} \\ \vdots \\ \mu_{c,[D]}\end{pmatrix}, \qquad \Sigma_c = \begin{pmatrix}\sigma^2_{c,} & 0 & \cdots & 0 \\ 0 & \sigma^2_{c,} & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & \sigma^2_{c,[D]}\end{pmatrix}$$
+
+The Naive Bayes Gaussian classifier corresponds to a Multivariate Gaussian classifier with diagonal covariance matrices (this does not hold in general).
+
+\subsection{Tied covariance matrix}
+
+The tied covariance matrix is the assumption that all classes share the same covariance matrix. A pro is that a single shared covariance matrix can be more easily estimated. Tied covariance models can capture correlations, but may perform poorly when classes have very different distributions. On the other hand, if we have reason to believe that covariances should be very similar, then the model will provide a more reliable estimate.
+
+In the tied covariance matrix Gaussian model, each class is modeled with a multivariate Gaussian distribution, but all classes share the same covariance matrix. This means that while each class can have its own mean vector, the covariance matrix is the same for all classes:
+
+$$f_{X|C}(x \mid c) = \mathcal{N}(x \mid \mu_c,\, \Sigma)$$
+
+We can estimate the parameters using the ML framework. We get:
+
+$$\mu_c^* = \frac{1}{N_c}\sum_{i \mid c_i=c} x_i, \qquad \Sigma^* = \frac{1}{N}\sum_c \sum_{i \mid c_i=c}(x_i - \mu_c)(x_i - \mu_c)^T$$
+
+where $N = \sum_{c=1}^{k} N_c$ is the total number of samples.
+
+Note that the binary LLR:
+
+$$\mathrm{llr}(x) = \log \frac{\mathcal{N}(x;\, \mu_1,\, \Lambda^{-1})}{\mathcal{N}(x;\, \mu_0,\, \Lambda^{-1})} = x^T b + c$$
+
+with:
+
+$$b = \Lambda(\mu_1 - \mu_0), \qquad c = -\frac{1}{2}\!\left(\mu_1^T\Lambda\mu_1 - \mu_0^T\Lambda\mu_0\right)$$
+
+i.e., a \textbf{linear} function of $x$.

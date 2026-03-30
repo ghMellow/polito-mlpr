@@ -1,0 +1,76 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[most]{tcolorbox}
+\usepackage{tocloft}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+% Link cliccabili nell'indice
+\usepackage[hidelinks]{hyperref}
+
+\title{Machine Learning e Pattern Recognition}
+\author{Luca \& Mellow}
+\date{\today}
+
+\begin{document}
+
+% Impostazioni di formattazione secondo le linee guida
+\setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+\setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+\maketitle
+
+% Indice dei capitoli
+\tableofcontents
+
+\newpage
+
+
+% Capitoli
+\section{Introduction}
+\input{Introduction/Introduction.tex}
+
+\newpage
+
+\section{Dimensionality Reduction}
+\input{DimensionalityReduction/DimensionalityReduction.tex}
+
+\newpage
+
+\section{Probability and Density Estimation}
+\input{ProbabilityDensityEstimation/ProbabilityDensityEstimation.tex}
+
+\newpage
+
+\section{Generative Gaussian Models}
+\input{GenerativeGaussianModels/GenerativeGaussianModels.tex}
+
+\newpage
+
+\section{Generative Multinomial Models}
+\input{GenerativeMultinomialModels/GenerativeMultinomialModels.tex}
+
+\newpage
+
+\section{Bayes Decisions and Model Evaluation}
+\input{BayesDecisionsAndModelEvaluation/BayesDecisionsAndModelEvaluation.tex}
+
+\newpage
+
+\section{Logistic Regression}
+\input{LogisticRegression/LogisticRegression.tex}
+
+\newpage
+
+\section{Gaussian Mixture Models}
+\input{GaussianMixtureModels/GaussianMixtureModels.tex}
+
+\newpage
+
+\section{Score Calibration and Fusion}
+\input{ScoreCalibrationAndFusion/ScoreCalibrationAndFusion.tex}
+
+\end{document}

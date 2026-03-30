@@ -1,0 +1,404 @@
+% Stile paragrafo
+\setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+\setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+\section*{Bayes Decisions and Model Evaluation}
+
+Maximum-a-posteriori class assignment is an approach that does not consider the fact that different labeling errors may have a different impact. Thus, in some contexts, it would not necessarily lead to the best decision.
+
+A \textbf{metric} is a quantitative measure used to evaluate the performance of a model or algorithm. In machine learning, metrics help assess how well a model makes predictions.
+Two simple metrics are \textbf{accuracy} and \textbf{error rate}:
+
+\textbf{accuracy}:
+\begin{equation*}
+\text{accuracy} = \frac{\#\ \text{of correctly classified samples}}{\#\ \text{of samples}}
+\end{equation*}
+
+\textbf{error rate}:
+\begin{equation*}
+\text{error rate} = \frac{\#\ \text{of incorrectly classified samples}}{\#\ \text{of samples}} = 1 - \text{accuracy}
+\end{equation*}
+
+However, although in some scenarios accuracy can be a good metric, it's affected by several issues that may result in the metric being less useful for the evaluation of a classifier, or the comparison of different classifiers. These issues are:
+
+\begin{itemize}
+  \item it does not account for the cost of the different kinds of errors
+  \item it is dependent on the empirical class prior of the different classes, which does not necessarily reflect the application prior
+  \item it is unnormalized, i.e., it does not, by itself, allow judging whether a classifier is indeed useful (\textit{sia davvero utile}) (e.g., better than decisions taken without the classifier)
+\end{itemize}
+
+Ideally we would like our system to provide optimal performance on the application data. However, we cannot measure a priori the performance of the system on the application data, since typically we do not have neither of the data nor the corresponding labels.
+
+We can, on the other hand, employ an evaluation set to compute the performance of different models on the evaluation set itself.
+
+The evaluation metrics thus:
+\begin{itemize}
+  \item measure exactly our performance on the given dataset.
+  \item can be used to obtain an estimate of our performance on application data that behaves similarly to our evaluation set.
+\end{itemize}
+
+Note that it is important that our metrics do not depend on the evaluation set empirical prior, when this may differ from the application prior.
+
+\textbf{The confusion matrix} provides a complete summary of a classifier's predictions on a given dataset. For each combination of true class label $C_j$ and predicted label $C_i$, it reports the number of samples from class $C_j$ that were predicted as $C_i$. This includes both correct classifications (on the diagonal) and misclassifications (off the diagonal).
+
+\begin{center}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|cccc}
+ & Class $C_1$ & Class $C_2$ & $\cdots$ & Class $C_K$ \\
+\hline
+Prediction $C_1$ & $\#$ samples of $C_1$ pred. as $C_1$ & $\#$ samples of $C_2$ pred. as $C_1$ & $\cdots$ & $\#$ samples of $C_K$ pred. as $C_1$ \\
+Prediction $C_2$ & $\#$ samples of $C_1$ pred. as $C_2$ & $\#$ samples of $C_2$ pred. as $C_2$ & $\cdots$ & $\#$ samples of $C_K$ pred. as $C_2$ \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
+Prediction $C_K$ & $\#$ samples of $C_1$ pred. as $C_K$ & $\#$ samples of $C_2$ pred. as $C_K$ & $\cdots$ & $\#$ samples of $C_K$ pred. as $C_K$
+\end{tabular}
+}
+\end{center}
+
+For a binary problem, we define the confusion matrix, per-class error rates and derived formulas:
+
+\begin{center}
+\begin{tabular}{l|cc}
+ & Class $H_F$ & Class $H_T$ \\
+\hline
+Prediction $H_F$ & True Negative (TN) & False Negative (FN) \\
+Prediction $H_T$ & False Positive (FP) & True Positive (TP)
+\end{tabular}
+\end{center}
+
+\begin{equation*}
+\text{acc} = \frac{TN + TP}{TN + FP + TP + FN}, \quad \text{err} = \frac{FP + FN}{TN + FP + TP + FN}
+\end{equation*}
+
+\begin{equation*}
+P_{fn} = \frac{FN}{FN + TP} \quad \text{(False Negative Rate --- error rate for the positive class)}
+\end{equation*}
+
+\begin{equation*}
+P_{fp} = \frac{FP}{FP + TN} \quad \text{(False Positive Rate --- error rate for the negative class)}
+\end{equation*}
+
+\begin{equation*}
+TPR = \frac{TP}{FN + TP} = 1 - FNR \quad \text{(True Positive Rate / recall / sensitivity)}
+\end{equation*}
+
+\begin{equation*}
+TNR = \frac{TN}{FP + TN} = 1 - FPR \quad \text{(True Negative Rate / specificity)}
+\end{equation*}
+
+We notice that all these metrics are calculated using only the samples from a single class at a time. Because of this, their values do not depend on how many samples there are in each class (the class proportions), but only on the performance within that specific class.
+
+The proportion of samples for each class is the fraction (or percentage) of samples in your dataset that belong to each class.
+
+We define the empirical class prior (computed on the evaluation set):
+
+\begin{equation*}
+\pi^{emp}_E = \frac{TP + FN}{TN + FP + TP + FN}
+\end{equation*}
+
+The error rate can be represented as a weighted sum of the error rates of each class, where the weights depend on the empirical class prior:
+
+\begin{equation*}
+\resizebox{\textwidth}{!}{$\displaystyle
+\text{err} = \frac{FP + FN}{TN + FP + TP + FN} = \frac{FP}{TN + FP} \cdot \frac{TN + FP}{TN + FP + TP + FN} + \frac{FN}{TP + FN} \cdot \frac{TP + FN}{TN + FP + TP + FN}
+$}
+\end{equation*}
+
+\begin{equation*}
+= P_{fp}(1 - \pi^{emp}_E) + P_{fn}\,\pi^{emp}_E
+\end{equation*}
+
+In real-world scenarios, the class proportions (application prior) can be very different from those in the evaluation dataset. Creating a dataset that matches the real-world class proportions is often impractical, especially when one class is very rare. However, we can estimate the total error rate we would expect in the real scenario, by combining the per-class error rates (measured on a balanced dataset) with the real class priors $\pi$, using the error rate formula:
+
+\begin{equation*}
+\text{err}_{app} = P_{fp}(1-\pi) + P_{fn}\,\pi
+\end{equation*}
+
+This allows us to predict performance under real conditions without collecting a large number of rare class samples.
+
+\textbf{The error rate does not account for the cost of different errors.}
+
+The concept of cost is not restricted to a monetary cost, but is a generalization that should quantify the effects of an incorrect classification, and in particular reflect the relative effects of different error types. Typically, costs will change from application to application.
+
+We want a metric that overcomes all these issues, allowing us to summarize the performance of a classifier with a single number that:
+\begin{itemize}
+  \item depends on the application, rather than on the empirical prior
+  \item accounts for the different costs of classification errors
+  \item allows comparing different classifiers
+  \item is normalized
+\end{itemize}
+
+A \textbf{normalized metric} is a performance measure that has been scaled or transformed to take values within a standard range, typically between 0 and 1, and allows for fair comparison.
+
+Given a task, the goal of a classifier is to allow us to choose a suitable action (or decision) $a$ to perform among a set of possible actions $\mathcal{A}$.
+
+We can associate to each action a cost $C(a|k)$ that we have to pay when we choose action $a$ and the sample belongs to class $k$.
+
+We assume that a classifier $R$ is able to produce a decision, labeling in our case, for each sample according to some rule.
+
+We denote with $\mathcal{A}$ the set of actions corresponding to labeling a sample.
+
+We denote with $a(x, R)$ the decision made by $R$ for sample $x$, whose correct class is $c$.
+
+The cost of such decision is $C(a(x,R),|,c)$.
+
+Let's remind the definition of the expectation of a function as:
+
+\begin{equation*}
+E[f(X)] = \int f(x)\,p(x)\,dx
+\end{equation*}
+
+i.e., it is the cost of predicting label $a(x,R)$ when the correct value is $c$.
+
+We can express the Bayes risk of decisions made by our classifier for the target application population, i.e., the cost we expect to pay for using our system on the application population:
+
+\begin{equation*}
+B = E_{X,C|E}[C(a(x,R)|c)]
+\end{equation*}
+
+where $E$ denotes the application population, that is the real population on which the system will be used, and can also be interpreted as an evaluator who has complete knowledge of the application data.
+
+$X$ and $C$ are random variables and are distributed according the real application distribution:
+
+\begin{equation*}
+X, C|E
+\end{equation*}
+
+Unfortunately we do not have knowledge of the distribution $f_{X,C|E}$.
+
+If we assume we know the application prior probabilities $\pi_c = P(C = c \mid E)$, we can express the Bayes risk for the target application as:
+
+\begin{equation*}
+B = \sum_{c=1}^K \pi_c \int f_{X|C,E}(x|c)\,C(a(x,R)|c)\,dx = \sum_{c=1}^K \pi_c\,E_{X|C,E}[C(a(x,R)|c)\mid c]
+\end{equation*}
+
+where the distribution $f_{X|C,E}(x|c)$ is the class likelihood of the application population.
+
+Since we do not have access to $f_{X|C,E}(x|c)$, we cannot compute the Bayes risk. However, if we have a set of labeled evaluation samples $(x_1, c_1), \ldots, (x_N, c_N)$, then we can approximate the expectations by averaging the cost over the samples. Indeed, if samples $x_i$ are generated by $X|C,E$, as the number of samples per class becomes large we have that:
+
+\begin{equation*}
+E_{X|C,E}[C(a(x,R)|c)\mid c] = \int C(a(x,R)|c)f_{X|C,E}(x|c)dx \approx \frac{1}{N_c} \sum_{i\mid c_i = c} C(a(x_i,R)|c)
+\end{equation*}
+
+i.e., the integral can be approximated by the average cost computed over samples of each class of the evaluation set.
+
+We can finally define the empirical Bayes risk as:
+
+\begin{equation*}
+B_{emp} = \sum_{c=1}^K \pi_c \frac{1}{N_c} \sum_{i\mid c_i = c} C(a(x_i,R)|c)
+\end{equation*}
+
+The risk measures the costs of our decisions for a target application over the evaluation samples.
+
+We can use $B_{emp}$ to compare recognizers. Lower costs correspond to better performance.
+
+If we set the class prior probabilities $\pi_c$ equal to the empirical class priors $\pi^{emp}_c$ from the evaluation set, then the empirical Bayes risk corresponds to the total misclassification cost on the evaluation samples. This is similar to the error rate, but it also takes into account the specific costs associated with different types of errors.
+
+To compute the empirical Bayes risk, we need the confusion matrix, the cost matrix, and the class prior probabilities.
+
+Let's consider a binary problem.
+
+\begin{center}
+\begin{tabular}{l|cc}
+ & Class $H_F$ & Class $H_T$ \\
+\hline
+Prediction $H_F$ & $C(H_F\mid H_F) = 0$ & $C(H_F\mid H_T) = C_{fn}$ \\
+Prediction $H_T$ & $C(H_T\mid H_F) = C_{fp}$ & $C(H_T\mid H_T) = 0$
+\end{tabular}
+\end{center}
+
+$C_{fn}$ is the cost of false negative errors, $C_{fp}$ is the cost of false positive errors.
+
+Let $c^*_i$ be the predicted label for sample $x_i$, whose label is $c_i$. The empirical Bayes risk is:
+
+\begin{equation*}
+B_{emp} = \pi_T \frac{1}{N_T} \sum_{i\mid c_i = H_T} C(c^*_i\mid H_T) + (1-\pi_T) \frac{1}{N_F} \sum_{i\mid c_i = H_F} C(c^*_i\mid H_F)
+\end{equation*}
+
+\begin{equation*}
+= \pi_T C_{fn} P_{fn} + (1-\pi_T) C_{fp} P_{fp}
+\end{equation*}
+
+$B_{emp}$ is also called unnormalized Detection Cost Function:
+
+\begin{equation*}
+DCF_u(\pi_T, C_{fn}, C_{fp}) = \pi_T C_{fn} P_{fn} + (1-\pi_T) C_{fp} P_{fp}
+\end{equation*}
+
+The normalized DCF is used to evaluate how much better our classifier is compared to a trivial solution.
+
+Dummy systems are classifiers that always predict the same class, either always accepting:
+
+\begin{equation*}
+P_{fp} = 1, \quad P_{fn} = 0 \implies DCF_u = (1-\pi_T)C_{fp}
+\end{equation*}
+
+or always rejecting:
+
+\begin{equation*}
+P_{fp} = 0, \quad P_{fn} = 1 \implies DCF_u = \pi_T C_{fn}
+\end{equation*}
+
+Dummy systems are based only on the prior probabilities and costs, without looking at the data. The best dummy system is the one with the lowest cost among these options.
+
+We compute the DCF for our real system and compare it to the cost of the best dummy system:
+
+\begin{equation*}
+DCF(\pi_T, C_{fn}, C_{fp}) = \frac{DCF_u(\pi_T, C_{fn}, C_{fp})}{\min(\pi_T C_{fn}, (1-\pi_T)C_{fp})}
+\end{equation*}
+
+By normalizing in this way, we can see if our classifier is truly extracting useful information from the data: a normalized DCF close to 1 means our system is no better than a dummy, while a value close to 0 means our system is much better.
+
+The normalized DCF is invariant to scaling of the costs. This means that if we multiply all the costs by a constant factor, the value of the normalized DCF does not change. As a result, we can always rescale the problem so that the costs are uniform (for example, both set to 1), and the effect of the original costs and class priors is absorbed into a new, effective prior probability. This effective prior summarizes the combined influence of the original priors and costs.
+
+Similarly, we can also transform the problem so that the prior is uniform (for example, 0.5 for each class), and the effect of the original prior is absorbed into new, effective classification costs.
+
+In both cases, the normalized DCF remains the same, and the different formulations are equivalent in terms of evaluating classifier performance.
+
+This property allows us to fairly compare classifiers and applications with different priors and costs, since the normalized DCF reflects only the true ability of the classifier to extract useful information from the data, independent of the original cost and prior settings.
+
+For multiclass tasks, the evaluation is more complex, and we cannot represent any application with a single parameter (the effective prior).
+
+However, we can compute the empirical Bayes risk, and a normalized DCF. The latter is obtained by scaling the empirical Bayes risk by the cost of the best dummy system.
+
+Let's consider a binary classification problem.
+
+In many cases, binary classifiers output a single score that measures the strength of the hypothesis for one class (e.g., the log-likelihood ratios in generative models, the posterior log-probability ratio in discriminative models, or the score from non-probabilistic models like SVM).
+
+A higher score indicates a stronger preference for a particular class.
+
+Decisions can be cast as comparing the score with a threshold. By varying the threshold, we obtain different error rates for the two classes.
+
+We can visualize the performance of the classifier for different thresholds by plotting the error rates as a function of the threshold. The threshold at which the error rates for the two classes are equal, $P_{fn} = P_{fp}$, is called the Equal Error Rate.
+
+To better understand the trade-off between different types of errors as we change the threshold, we use graphical tools such as the ROC curve (Receiver Operating Characteristic), which plots the TPR against the FPR, and the DET curve (Detection Operating Characteristic), which plots the FNR against the FPR.
+
+These curves help us evaluate and compare the performance of classifiers across all possible thresholds.
+
+Since the error rates depend on the selected threshold, we would like to optimize the threshold selection for a given application. More generally, we seek a principled way to transform the classifier scores into effective decisions.
+
+For now, let's assume our classifier is probabilistic, meaning it can provide class posterior probabilities for a given sample $x$ in a specific application $P(C = k \mid x, R)$. This allows us to compute the expected cost of action $a$ according to the posterior probabilities $P(C = k \mid x, R)$:
+
+\begin{equation*}
+C_{x,R}(a) = E_{C|X,R}[C(a|k)\mid x, R] = \sum_{k=1}^K C(a|k)P(C=k\mid x, R)
+\end{equation*}
+
+This expected cost measures the cost that we expect to pay given the recognizer knowledge, encoded through the class distribution $P(C = k \mid x, R)$.
+
+The optimal Bayes decision consists in choosing the action that minimizes the expected cost:
+
+\begin{equation*}
+a^*(x, R) = \arg\min_a C_{x,R}(a)
+\end{equation*}
+
+This represents the action that will result in the lower expected cost, according to the recognizer beliefs.
+
+Note that different recognizers may have different posterior beliefs, and thus may provide different decisions. Optimal Bayes decisions are optimal from the point of view of the recognizer.
+
+If the evaluator and the recognizer agree, meaning they report the same class posterior probabilities for any sample, the Bayes decisions minimize the Bayes risk.
+
+Indeed, we can express the Bayes risk as:
+
+\begin{equation*}
+B = E_{X,C|E}[C(a(x,R)|c)] = \int f_{X|E}(x) \sum_{c=1}^K C(a(x,R)|c)P(C|X=x,E)dx
+\end{equation*}
+
+\begin{equation*}
+= \int f_{X|E}(x) E_{C|X,E}[C(a(x,R)|c)\mid x]dx
+\end{equation*}
+
+If $C|X, R \sim C|X, E$, then the risk becomes:
+
+\begin{equation*}
+B = \int f_{X|E}(x) E_{C|X,R}[C(a(x,R)|c)\mid x]dx \geq \int f_{X|E}(x) E_{C|X,R}[C(a^*(x,R)|c)\mid x]dx
+\end{equation*}
+
+since, for any $x$, $a^*(x,R)$ is the action that minimizes the expected cost:
+
+\begin{equation*}
+C_{x,R}(a(x,R)) \geq C_{x,R}(a^*(x,R)),\ \forall x
+\end{equation*}
+
+Optimally can be interpreted in two ways. From the point of view of the recognizer $R$, optimal Bayes decisions are those that minimize the Bayes risk according to the recognizer's own knowledge, that is, based on its estimated posterior probabilities.
+
+However, if we imagine a system that has complete knowledge of the true data distributions, an evaluator ($E$), then the optimal Bayes decisions would minimize the true Bayes risk as evaluated by this evaluator. In this ideal case, the Bayes risk represents the lowest possible cost we could achieve for classifying the test data. Of course, in practice, we do not have full knowledge of the data, so we cannot compute this true risk.
+
+Note that the evaluator is an abstract entity that knows the real distributions and serves as a theoretical reference for the best possible performance.
+
+\textit{optimal Bayes decisions of a system that has complete data knowledge $R = E$ minimize the Bayes risk of the evaluator $E$}
+
+Note that, even with complete knowledge, we may have $0 < P(C = k \mid X, E) < 1$ for different classes, e.g., when samples with the same feature values may have different labels, thus even in this case the Bayes risk may be non-zero.
+
+Let's consider a binary problem with cost matrix:
+
+\begin{center}
+\begin{tabular}{l|cc}
+ & Class $H_F$ & Class $H_T$ \\
+\hline
+Prediction $H_F$ & $0$ & $C_{fn}$ \\
+Prediction $H_T$ & $C_{fp}$ & $0$
+\end{tabular}
+\end{center}
+
+The optimal decision can be expressed as:
+
+\begin{equation*}
+a^*(x, R) = \begin{cases}
+H_T & \text{if } C_{fp} P(H_F|x, R) < C_{fn} P(H_T|x, R) \\
+H_F & \text{if } C_{fp} P(H_F|x, R) > C_{fn} P(H_T|x, R)
+\end{cases}
+\end{equation*}
+
+Equivalently, defining $r(x) = \log\dfrac{C_{fn}P(H_T|x,R)}{C_{fp}P(H_F|x,R)}$:
+
+\begin{equation*}
+a^*(x, R) = \begin{cases}
+H_T & \text{if } r(x) > 0 \\
+H_F & \text{if } r(x) < 0
+\end{cases}
+\end{equation*}
+
+If $R$ is a generative model for $x$, then we can express $r$ in terms of costs, prior probabilities and likelihoods as:
+
+\begin{equation*}
+r(x) = \log \frac{\pi_T C_{fn}}{(1-\pi_T)C_{fp}} \cdot \frac{f_{X|H,R}(x|H_T)}{f_{X|H,R}(x|H_F)}
+\end{equation*}
+
+The decision rule thus becomes:
+
+\begin{equation*}
+r(x) \gtrless 0 \iff \log \frac{f_{X|H,R}(x|H_T)}{f_{X|H,R}(x|H_F)} \gtrless -\log \frac{\pi_T C_{fn}}{(1-\pi_T)C_{fp}}
+\end{equation*}
+
+The triplet $(\pi_T, C_{fn}, C_{fp})$ represents the working point of an application for a binary classification task. Note that, as for the Bayes empirical risk, the triplet is actually redundant, in the sense we can build equivalent applications $(\pi'_T, C'_{fn}, C'_{fp})$ which have the same decision rule as the original application, but different costs and priors.
+
+For system producing well-calibrated log-likelihood ratios:
+
+\begin{equation*}
+s = \log \frac{f_{X|C}(x|H_T)}{f_{X|C}(x|H_F)}
+\end{equation*}
+
+the optimal threshold (optimal Bayes decision) becomes, in terms of effective prior:
+
+\begin{equation*}
+t = -\log \frac{\tilde{\pi}}{1-\tilde{\pi}}, \quad \text{where } \tilde{\pi} = \frac{\pi_T C_{fn}}{\pi_T C_{fn} + (1-\pi_T)C_{fp}}
+\end{equation*}
+
+A quantity (such as a log-likelihood ratio) is well-calibrated if its predicted values correspond closely to the true probabilities or frequencies observed in reality. For example, a well-calibrated probability estimate of 70\% should be correct about 70\% of the time.
+
+Note that LLRs allow disentangling the classifier from the application.
+
+In general, systems often do not produce well-calibrated LLRs. If so, we say that scores are mis-calibrated.
+
+For a given application, we can measure the additional cost due to the use of mis-calibrated scores. We can define the minimum cost $DCF_{min}$ corresponding to the use of the optimal threshold for a given evaluation set. We consider varying the threshold $t$ to obtain all possible combinations of $P_{fn}$ and $P_{fp}$ for the evaluation set. We select the threshold corresponding to the lowest $DCF$. The corresponding value $DCF_{min}$ is the cost we would pay if we knew before-hand the optimal threshold for the evaluation set. We can think of this value as a measure of the quality of the classifier. We can also compute the actual $DCF$ obtained using the threshold corresponding to the effective prior $\tilde{\pi}$. The difference between the actual and minimum $DCF$ represents the loss due to score mis-calibration.
+
+To reduce mis-calibration, various calibration strategies can be adopted.
+
+A simple approach is to use a validation set to find an optimal threshold for a specific application. However, more general methods look for functions that transform classifiers scores into approximately well-calibrated LLRs, in a way that is independent of the target application.
+
+We want to compute a transformation function $f$ that maps the classifiers scores $s$ to well-calibrated scores $s_{cal} = f(s)$.
+
+Two common approaches for score calibration are \textbf{isotonic regression} and \textbf{score models}.
+
+Isotonic regression is a non-linear, monotonic transformation that provides optimal calibration for the data it is trained on. This method produces a piecewise non-linear function, which may require interpolation for unseen scores and does not allow extrapolation outside the range of training scores. It can also be computationally expensive when the calibration set is large.
+
+Score models, such as prior-weighted logistic regression, approximate the transformation achieved by isotonic regression. These models require assumptions about the calibration transformation or the distribution of class scores. They are estimated on a training set and allow for extrapolation beyond the range of observed scores. Typically, they are fast to evaluate, but may provide good calibration only for a limited range of operating points.

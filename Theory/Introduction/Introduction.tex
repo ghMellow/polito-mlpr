@@ -1,0 +1,93 @@
+%!TEX root = ../MLPR.tex
+% Impostazioni di formattazione secondo le linee guida
+\setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+\setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+
+\textbf{Machine Learning}: a computer program is said to learn from experience E with respect to some class of tasks T and performance measure P, if its performance at tasks in T, as measured by P, improves with experience E.
+
+\textbf{Pattern Recognition}: automatic discovery of regularities in data through the use of computer algorithms to take actions such as classifying the data into different categories.
+
+\textbf{Supervised learning task}: along with the input data the system is provided with output data. The goal is estimating a mapping between input and output data.
+Ex: classification.
+
+\textbf{Unsupervised learning task}: no feedback is provided to the system, whose goal is to identify some useful structure of the data.
+Unsupervised methods are often used as pre-processing steps for supervised methods.
+Ex: density estimation
+
+\textbf{Underfitting}: a too-simple model fits the observed data very poorly, and it is not able to provide accurate predictions for unseen data.
+
+\textbf{Overfitting}: an over-complex model fits very accurately the observed data, but it is not able to provide accurate predictions for unseen data.
+
+\textbf{Curse of dimensionality}: as the number of dimensions increases, the volume of the space grows exponentially, making data very sparse.
+
+A \textbf{decision function} maps an input sample to a score or a label, determining the predicted class or outcome. It should provide a good generalization error.
+
+The \textbf{generalization error of a decision function} is the expected difference between the predicted outputs and the true outputs on new, unseen data.
+
+A \textbf{discriminative probabilistic model} directly estimates class posterior probabilities $P(C_k|\mathbf{x})$, without modeling how the data are generated. It focuses only on the decision boundary between classes. It does not describe the data distribution.
+
+A \textbf{generative probabilistic model} estimates the class joint probability distribution $P(\mathbf{x}, C_k) = P(\mathbf{x}|C_k)P(C_k)$ (or equivalently the class likelihoods, and the class prior probabilities), and then applies Bayes' theorem to compute class posterior probabilities. It models how data is generated and can also generate new samples. It is most demanding and informative.
+
+\begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
+\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
+La formula di Bayes usata dal modello generativo è:
+\begin{equation*}
+P(C_k|\mathbf{x}) = \frac{P(\mathbf{x}|C_k)\,P(C_k)}{P(\mathbf{x})}
+\end{equation*}
+dove $P(\mathbf{x}|C_k)$ è la class-conditional likelihood, $P(C_k)$ è la prior, e $P(\mathbf{x})$ è l'evidenza (costante di normalizzazione).
+\end{tcolorbox}
+
+A \textbf{model} is a mathematical or computational representation of the relationship between input (features) and output (labels) variables.
+
+A \textbf{parametric model} depends on a set of parameters $\theta$ whose size does not depend on the available data.
+
+A \textbf{training set} $\mathcal{D} = \{(\mathbf{x}_1, y_1), \ldots, (\mathbf{x}_N, y_N)\}$
+
+An \textbf{objective function} is a mathematical function that we want to minimize or maximize to solve a mathematical or optimization problem.
+
+The \textbf{frequentist approach} is a statistical framework where probabilities are interpreted as long-run frequencies of events, and model parameters are considered fixed but unknown quantities.
+Since $\theta$ is unknown, we compute an estimate $\theta^*$ of its value from the training set. Usually, $\theta^*$ is obtained through the optimization of a suitable objective function.
+$\theta^*$ encodes all the information extracted from the dataset $\mathcal{D}$.
+
+\begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
+\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
+Nel formalismo frequentista, l'inferenza avviene approssimando i parametri stimati ai parametri veri:
+\begin{itemize}
+\item Modello generativo: $P(\mathbf{x}_t|C_k, \mathcal{D}, M) \approx P(\mathbf{x}_t|C_k, \theta^*, M)$
+\item Modello discriminativo: $P(C_k|\mathbf{x}_t, \mathcal{D}, M) \approx P(C_k|\mathbf{x}_t, \theta^*, M)$
+\end{itemize}
+\end{tcolorbox}
+
+The \textbf{Bayesian approach} is a statistical framework where probabilities represent degrees of belief, and model parameters are treated as random variables with their own probability distributions, which are updated as new data becomes available.
+
+Define a prior distribution for $\theta$. The prior distribution encodes our knowledge on the problem, before we actually see the data. The learning stage is done by updating the prior distribution to take into account the training set data:
+
+\begin{equation*}
+P(\theta|M),\; \mathcal{D} \;\longrightarrow\; P(\theta|\mathcal{D}, M)
+\end{equation*}
+
+The \textbf{posterior distribution density} $P(\theta|\mathcal{D}, M)$ encodes our knowledge on the model parameters, after we have seen the data. The inference stage is done by marginalizing (ie to integrate out) over the model parameters.
+
+\begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
+\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
+La formula di marginalizzazione per l'inferenza bayesiana (caso generativo) è:
+\begin{equation*}
+P(\mathbf{x}_t|C_k, \mathcal{D}, M) = \int P(\mathbf{x}_t, \theta|C_k, M)\,P(\theta|\mathcal{D}, M)\,d\theta
+\end{equation*}
+\end{tcolorbox}
+
+The \textbf{Bayesian} approach models the uncertainty over the model parameter estimates.
+
+The \textbf{Bayesian} approach is effective when training data is scarce, but both training and inference are significantly complex.
+
+\textbf{We assess the quality of our predictions}. Since we cannot know the system performance on unseen data, we simulate its behavior on known data using an evaluation or test set.
+
+Note that with time this may lead to biased conclusions, it is unavoidable for practical reasons.
+
+Models often contain hyperparameters.
+
+\textbf{Hyperparameters} are configuration variables set before the learning process begins, which control the behavior or structure of a machine learning algorithm but are not learned from the data.
+
+\textbf{We need a way to perform model selection}. However, we cannot use test data to select good hyperparameters values, as this would bias our evaluation. We make use of a validation set. The validation set is used to assess the influence of model hyperparameters on prediction accuracy in order to select good hyperparameters values. So, part of the training set will be used for estimating our models. The remaining part, the validation set, will simulate the evaluation data, and will be used to infer hyperparameters and for model selection.
+

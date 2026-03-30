@@ -1,0 +1,300 @@
+%!TEX root = ../MLPR.tex
+% Impostazioni di formattazione secondo le linee guida
+\setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+\setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+
+\textbf{Dimensionality reduction techniques} compute a mapping from the $n$-dimensional feature space to a $m$-dimensional space, with $m \ll n$.
+
+\subsection{Principal Component Analysis (PCA)}
+
+\textbf{PCA} is a linear unsupervised dimensionality reduction technique. It works by finding a new set of orthogonal directions, called principal components, along which to project the data, in order to minimize the average reconstruction error.
+
+Mathematically, PCA computes the eigenvectors and eigenvalues of the data covariance matrix: the first eigenvectors (with the largest eigenvalues) represent the main directions.
+
+We are given a zero-mean dataset $\mathcal{X} = \{\mathbf{x}_1, \ldots, \mathbf{x}_K\}$, with $\mathbf{x}_i \in \mathbb{R}^n$.
+
+We want to find the subspace of $\mathbb{R}^n$ that allows preserving most of the information.
+
+A subspace can be represented as a matrix $P \in \mathbb{R}^{n \times m}$ whose columns are orthonormal.
+
+The set of columns of $P$ form a basis of a subspace of $\mathbb{R}^n$ with dimension $m$.
+
+The projection of $\mathbf{x}$ over the subspace is given by $\mathbf{y} = P^T\mathbf{x}$.
+
+We can compute the coordinates of the projected point $\mathbf{y}$ in the original space as $\hat{\mathbf{x}} = P\mathbf{y}$.
+
+We need to define a criterion for estimating $P$. A reasonable criterion is the minimization of the average reconstruction error. We therefore want to solve:
+
+\begin{equation*}
+P^* = \arg\min_P \frac{1}{K} \sum_{i=1}^{K} \|\mathbf{x}_i - \hat{\mathbf{x}}_i\|^2 = \arg\min_P \frac{1}{K} \sum_{i=1}^{K} \|\mathbf{x}_i - PP^T\mathbf{x}_i\|^2
+\end{equation*}
+
+subject to $P^TP = I$.
+
+Since $\text{Tr}$ is a linear operator, minimizing $L(P)$ is equivalent to maximizing:
+
+\begin{equation*}
+	\widetilde{L}(P) = \text{Tr}\left(P^T \left(\frac{1}{K}\sum_{i=1}^{K} \mathbf{x}_i\mathbf{x}_i^T\right) P\right)
+\end{equation*}
+
+We require that $P$ is an orthogonal matrix.
+
+The optimal solution is given by the matrix $P$ whose columns are the $m$ eigenvectors of $\frac{1}{K}\sum_{i=1}^{K} \mathbf{x}_i\mathbf{x}_i^T$ corresponding to the $m$ largest eigenvalues. Let:
+
+\begin{equation*}
+\frac{1}{K}\sum_{i=1}^{K} \mathbf{x}_i\mathbf{x}_i^T = U\Sigma U^T
+\end{equation*}
+
+be an eigen-decomposition of the matrix, with $\Sigma$ containing the eigenvalues in descending order
+
+\begin{equation*}
+\Sigma = \begin{pmatrix} \sigma_1 \\ & \sigma_2 \\ & & \ddots \\ & & & \sigma_n \end{pmatrix}, \quad \sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_n
+\end{equation*}
+
+and
+
+\begin{equation*}
+U = [\mathbf{u}_1 \ldots \mathbf{u}_m, \mathbf{u}_{m+1} \ldots \mathbf{u}_n]
+\end{equation*}
+
+Then
+
+\begin{equation*}
+P^* = [\mathbf{u}_1 \ldots \mathbf{u}_m]
+\end{equation*}
+
+As a consequence of projecting onto the eigenvectors of the covariance matrix, PCA transforms the data into a new coordinate system where the greatest variance lies on the first axis, the second greatest on the second, and so on. This is why PCA can be interpreted as the linear mapping that preserves the directions with the highest variance.
+
+If the dataset is not zero-mean, the first PCA direction will approximately connect the origin and the dataset mean, which is generally not informative. It is therefore essential to center the data by subtracting the dataset mean $\bar{\mathbf{x}}$ before computing PCA. The PCA subspace $P$ is then computed from the eigenvectors of the empirical covariance matrix:
+
+\begin{equation*}
+C = \frac{1}{K}\sum_{i=1}^{K} (\mathbf{x}_i - \bar{\mathbf{x}})(\mathbf{x}_i - \bar{\mathbf{x}})^T
+\end{equation*}
+
+which in 2D can be visualized as an ellipse whose axes correspond to the principal directions and whose lengths are proportional to the standard deviations.
+
+Selection of optimal $m$, that is a hyperparameter, can be done by cross-validation or by selecting it to retain a given percentage $t$ (e.g., 95\%) of the variance of the data. We know that each eigenvalue corresponds to the variance along the corresponding axis. We choose $m$ as:
+
+\begin{equation*}
+\min_m \; m \quad \text{s.t.} \quad \frac{\sum_{i=1}^{m} \sigma_i}{\sum_{i=1}^{n} \sigma_i} \geq t
+\end{equation*}
+
+where $\sigma_i$ is the $i$-th largest eigenvalue.
+
+\textbf{Pro and cons}:
+\begin{itemize}
+	\item Computing the sample covariance matrix can be difficult when the feature space is very large.
+	\item Since PCA is unsupervised, we have no guarantee to obtain discriminant directions.
+\end{itemize}
+
+
+\newpage
+\subsection{Linear Discriminant Analysis (LDA)}
+
+\textbf{LDA} is a linear supervised dimensionality reduction technique and a classification technique that finds linear combinations of features which best separate two or more classes.
+
+We represent a direction as a unit vector $\mathbf{w}$.
+
+The projected point is $y = \mathbf{w}^T\mathbf{x}$ (a scalar).
+
+LDA projects the data into a lower-dimensional space by finding a direction that has a large separation between the classes and small spread inside each class. We measure spread in terms of class (co)variance. LDA maximizes the between-class variability $s_B$ over within-class variability $s_W$ ratio for the transformed samples:
+
+\begin{equation*}
+\max_{\mathbf{w}} \frac{\mathbf{w}^T S_B \mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}}
+\end{equation*}
+
+Since we are looking for a discriminant direction $\mathbf{w}$, we now consider the between $s_B$ and within $s_W$ class variance of the projected samples $\mathbf{w}^T\mathbf{x}$.
+
+The global mean and class means in the direction $\mathbf{w}$ are simply:
+
+\begin{equation*}
+m = \mathbf{w}^T\boldsymbol{\mu}, \quad m_c = \mathbf{w}^T\boldsymbol{\mu}_c
+\end{equation*}
+
+The between and within class variance over the direction $\mathbf{w}$ can also be computed as:
+
+\begin{equation*}
+s_B = \frac{1}{N}\sum_{c=1}^{K} n_c (\mathbf{w}^T\boldsymbol{\mu}_c - \mathbf{w}^T\boldsymbol{\mu})(\mathbf{w}^T\boldsymbol{\mu}_c - \mathbf{w}^T\boldsymbol{\mu})^T = \mathbf{w}^T S_B \mathbf{w}
+\end{equation*}
+
+\begin{equation*}
+s_W = \frac{1}{N}\sum_{c=1}^{K} \sum_{i=1}^{n_c} (\mathbf{w}^T\mathbf{x}_{c,i} - \mathbf{w}^T\boldsymbol{\mu}_c)(\mathbf{w}^T\mathbf{x}_{c,i} - \mathbf{w}^T\boldsymbol{\mu}_c)^T = \mathbf{w}^T S_W \mathbf{w}
+\end{equation*}
+
+where the between and within class variability matrices are defined as:
+
+\begin{equation*}
+S_B \triangleq \frac{1}{N}\sum_{c=1}^{K} n_c (\boldsymbol{\mu}_c - \boldsymbol{\mu})(\boldsymbol{\mu}_c - \boldsymbol{\mu})^T
+\end{equation*}
+
+\begin{equation*}
+S_W \triangleq \frac{1}{N}\sum_{c=1}^{K} \sum_{i=1}^{n_c} (\mathbf{x}_{c,i} - \boldsymbol{\mu}_c)(\mathbf{x}_{c,i} - \boldsymbol{\mu}_c)^T
+\end{equation*}
+
+As a criterion of optimality we define the maximization of the ratio of $s_B$ and $s_W$. We assume that $S_W$ is full rank, thus the objective function is:
+
+\begin{equation*}
+L(\mathbf{w}) = \frac{s_B}{s_W} = \frac{\mathbf{w}^T S_B \mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}}
+\end{equation*}
+
+Note that the criterion does not depend on the scale of $\mathbf{w}$, so we can select a maximizer with unit form.
+
+We can find an optimum by solving:
+
+\begin{equation*}
+\nabla_{\mathbf{w}} L(\mathbf{w}) = \frac{2S_B\mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}} - \frac{2\mathbf{w}^T S_B \mathbf{w} \cdot S_W \mathbf{w}}{(\mathbf{w}^T S_W \mathbf{w})^2} = 0
+\end{equation*}
+
+The optimum is obtained for:
+
+\begin{equation*}
+(\mathbf{w}^T S_W \mathbf{w})S_B\mathbf{w} = (\mathbf{w}^T S_B \mathbf{w})S_W\mathbf{w}
+\end{equation*}
+
+i.e.
+
+\begin{equation*}
+S_W^{-1}S_B\mathbf{w} = \lambda(\mathbf{w})\mathbf{w}
+\end{equation*}
+
+where
+
+\begin{equation*}
+\lambda(\mathbf{w}) = L(\mathbf{w}) = \frac{\mathbf{w}^T S_B \mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}}
+\end{equation*}
+
+The maximum of $L$ is thus the eigenvector of $S_W^{-1}S_B$ corresponding to the largest eigenvalue.
+
+\begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
+\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
+dalla derivata poni $\nabla L = 0$ e ottieni (dopo la regola del quoziente):
+dividi entrambi i lati per lo scalare $(\mathbf{w}^T S_W \mathbf{w})$
+\begin{itemize}
+	\item \textbf{Passo 1} \\ 
+	Dalla derivata poni $\nabla L = 0$ e ottieni (dopo la regola del quoziente): \\ 
+	$(\mathbf{w}^T S_W \mathbf{w}) \cdot S_B \mathbf{w} = (\mathbf{w}^T S_B \mathbf{w}) \cdot S_W \mathbf{w}$ \\ 
+	I due termini tra parentesi $(\mathbf{w}^T S_W \mathbf{w})$ e $(\mathbf{w}^T S_B \mathbf{w})$ sono due scalari — sono numeri, non vettori. Il risultato della moltiplicazione vettore trasposto × matrice × vettore è sempre un numero.
+
+	\vspace{0.5em}
+	\item \textbf{Passo 2} \\ 
+	Dividi entrambi i lati per lo scalare $(\mathbf{w}^T S_W \mathbf{w})$ \\ 
+	$S_B \mathbf{w} = \left[\frac{\mathbf{w}^T S_B \mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}}\right] \cdot S_W \mathbf{w}$
+
+	\vspace{0.5em}
+	\item \textbf{Passo 3} \\ 
+	Moltiplica entrambi i lati per $S_W^{-1}$ \\ 
+	$S_W^{-1} S_B \mathbf{w} = \left[\frac{\mathbf{w}^T S_B \mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}}\right] \cdot \mathbf{w}$
+
+	\vspace{0.5em}
+	\item \textbf{Passo 4} \\ 
+	Riconosci il termine tra parentesi. Quel rapporto tra parentesi è esattamente $L(\mathbf{w})$, la funzione obiettivo definita all'inizio! Quindi lo chiami $\lambda(\mathbf{w})$ per brevità, e ottieni: \\ 
+	$S_W^{-1} S_B \mathbf{w} = \lambda(\mathbf{w}) \cdot \mathbf{w}$
+\end{itemize}
+
+\vspace{0.5em}
+Perché questo è un problema agli autovalori? \\ 
+Perché ha esattamente la forma $M \mathbf{v} = \lambda \mathbf{v}$ — una matrice moltiplicata per un vettore dà lo stesso vettore scalato. Qui $M = S_W^{-1} S_B$, $\mathbf{v} = \mathbf{w}$, $\lambda = L(\mathbf{w})$.
+
+\vspace{0.5em}
+La conclusione chiave \\ 
+Poiché $\lambda(\mathbf{w}) = L(\mathbf{w})$, massimizzare $L$ significa massimizzare $\lambda$. E tra tutti gli autovettori di $S_W^{-1} S_B$, quello che massimizza $\lambda$ è per definizione quello con autovalore più grande. Quindi la $\mathbf{w}$ ottimale è quell'autovettore.
+\end{tcolorbox}
+
+
+
+For a binary problem, we can express:
+
+\begin{equation*}
+S_B = k(\boldsymbol{\mu}_2 - \boldsymbol{\mu}_1)(\boldsymbol{\mu}_2 - \boldsymbol{\mu}_1)^T
+\end{equation*}
+
+where $k$ is a constant. An eigenvector associated to the (single) non-zero eigenvalue is:
+
+\begin{equation*}
+\mathbf{w} \propto S_W^{-1}(\boldsymbol{\mu}_2 - \boldsymbol{\mu}_1)
+\end{equation*}
+
+To derive a classification rule, we consider a classifier based on the distance of a sample from the class means, in the projected space.
+
+Let $m_1 = \mathbf{w}^T\boldsymbol{\mu}_1$, $m_2 = \mathbf{w}^T\boldsymbol{\mu}_2$. The sample $\mathbf{x}_t$ is assigned label $C_1$ if:
+
+\begin{equation*}
+|\mathbf{w}^T\mathbf{x}_t - m_1|^2 < |\mathbf{w}^T\mathbf{x}_t - m_2|^2
+\end{equation*}
+
+Assuming we chose $\mathbf{w}$ so that $m_2 - m_1 > 0$, our assignment becomes:
+
+\begin{equation*}
+C(\mathbf{x}_t) = \begin{cases} C_1 & \text{if } \mathbf{w}^T\mathbf{x}_t < t \\ C_2 & \text{if } \mathbf{w}^T\mathbf{x}_t \geq t \end{cases}
+\end{equation*}
+
+where $t = \frac{m_1 + m_2}{2}$.
+
+\vspace{1em}
+Despite being originally introduced to solve binary classification problems, LDA has found a large success as a dimensionality reduction technique. In this case, we are interested in looking for the $m$ most discriminant directions. We represent these directions as a matrix $W \in \mathbb{R}^{n \times m}$, whose columns contain the directions we want to find. We do not require that $W$ is orthogonal. We have:
+
+\begin{equation*}
+	\widetilde{\mathbf{x}} = W^T\mathbf{x}
+\end{equation*}
+
+We can express the transformed between and within class covariance matrices as:
+
+\begin{equation*}
+	\widetilde{S}_B = W^T S_B W
+\end{equation*}
+
+\begin{equation*}
+	\widetilde{S}_W = W^T S_W W
+\end{equation*}
+
+A criteria is to look for the maximizer of:
+
+\begin{equation*}
+L = \text{Tr}\left(\tilde{S}_W^{-1}\tilde{S}_B\right)
+\end{equation*}
+
+Here, the solution is given by the $m$ eigenvectors corresponding to the $m$ largest eigenvalues of $S_W^{-1}S_B$.
+
+
+\begin{tcolorbox}[title=Approfondimento: metodo alternativo]
+Another criteria is to solve the generalized eigenvalue problem $S_B\mathbf{w} = \lambda S_W\mathbf{w}$. It consists in the joint diagonalization of $S_W$ and $S_B$ that makes $S_W$ become the identity matrix and $S_B$ become a diagonal matrix:
+
+\textbf{Whiten $S_W$:}
+
+Compute the eigenvalue decomposition $S_W = U_W \Sigma_W U_W^T$.
+
+Apply the whitening transformation described by:
+
+\begin{equation*}
+P_W = U_W \Sigma_W^{-\frac{1}{2}} U_W^T
+\end{equation*}
+
+This transforms:
+
+\begin{equation*}
+S_W \rightarrow I, \quad S_B \rightarrow P_W S_B P_W^T
+\end{equation*}
+
+\textbf{Diagonalize the transformed $S_B$:}
+
+Compute the eigenvalue decomposition $P_W S_B P_W^T = U_B \Sigma_B U_B^T$.
+
+Diagonalize by projecting over $U_B^T$:
+
+\begin{equation*}
+S_W \rightarrow I, \quad S_B \rightarrow \Sigma_B
+\end{equation*}
+
+The first $m$ directions of the transformed samples correspond to the LDA subspace.
+\end{tcolorbox}
+
+\vspace{0.5cm}
+
+\textbf{Pro and cons}:
+\begin{itemize}
+	\item LDA assumes that the variability of data within each class follows a Gaussian distribution.
+	\item When the number of directions is large compared to the number of samples, $S_W$ can become singular or close to singular, making it difficult or impossible to compute its inverse.
+	\item It is often useful to pre-process data using PCA before applying LDA.
+	\item Notice that, from the definition of $S_B$, the number of non-zero eigenvalues is at most $K-1$ (where $K$ is the number of classes), therefore LDA allows estimating at most $K-1$ directions.
+\end{itemize}

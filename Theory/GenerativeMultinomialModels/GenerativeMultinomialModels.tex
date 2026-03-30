@@ -1,0 +1,229 @@
+
+% Generative Multinomial Models Chapter
+\section*{Generative Multinomial Models}
+
+\setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+\setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+\textbf{GENERATIVE MULTINOMIAL MODELS}
+
+The generative categorical model is a probabilistic model used for classification tasks where each sample is described by a single categorical feature (such as the color of an object).
+
+The generative multinomial model is a probabilistic model used for classification tasks where each sample is represented by counts over a fixed set of categories (such as word counts in text classification).
+
+In both models, for each class, the data are assumed to be generated according to a categorical or multinomial distribution, respectively, with class-specific parameters.
+
+The model estimates the probability of each category within each class and uses these probabilities to compute the likelihood of a new sample belonging to each class.
+
+Using Bayes' theorem, the model combines the class prior and the class likelihood (from the respective distribution) to compute the posterior probability for each class. The sample is then assigned to the class with the highest posterior probability.
+
+The main difference is that the categorical model is suited for a single categorical feature (a single trial) or several categorical features that are modeled independently using the Naive Bayes assumption, while the multinomial model is designed for feature vectors representing counts over multiple categories (multiple trials). Both models are generative and use ML estimation for parameter learning.
+
+We consider a classification problem modeled with a generative categorical approach. The following assumptions are made:
+
+Features are discrete.
+
+Each sample is described by a single categorical feature $x \in \{1 \ldots m\}$, which can take one of $m$ possible values.
+
+We have a set of labeled training samples $\mathcal{D} = \{(x_1, c_1) \ldots (x_n, c_n)\}$
+
+All samples are i.i.d.
+
+We want to compute the class likelihood for each class $c \in \{1 \ldots k\}$:
+
+\begin{equation*}
+L(\Pi)=\prod_{i=1}^n P(X_i = x_i \mid C_i = c_i)P(C_i = c_i)
+\end{equation*}
+
+The log-likelihood is given by:
+
+\begin{equation*}
+\ell(\Pi)=\sum_{i=1}^n \log P(X_i = x_i \mid C_i = c_i) + \xi
+\end{equation*}
+
+\begin{equation*}
+= \sum_{i=1}^n \log \pi_{c_i, x_i} + \xi
+\end{equation*}
+
+\begin{equation*}
+= \sum_{c=1}^k \sum_{i: c_i = c} \log \pi_{c, x_i} + \xi
+\end{equation*}
+
+\begin{equation*}
+= \sum_{c=1}^k \ell_c(\pi_c) + \xi
+\end{equation*}
+
+where:
+
+\begin{equation*}
+\ell_c(\pi_c) = \sum_{i: c_i = c} \log \pi_{c, x_i}
+\end{equation*}
+
+So, $\ell(\Pi)$ can be expressed as a sum of terms, each depending on a separate subset of the parameters, those of class $c$.
+
+We can thus estimate the parameters by independently optimizing $\ell_c(\pi_c)$:
+
+\begin{equation*}
+\ell_c(\pi_c) = \sum_{i: c_i = c} \log \pi_{c, x_i} = \sum_{j=1}^m N_{c,j} \log \pi_{c,j}
+\end{equation*}
+
+where $N_{c,j}$ is the number of times we observed $x_i = j$ in the dataset for class $c$.
+
+Since we have the constraint $\sum_{j=1}^{m} \pi_{c,j} = 1$, we use the Lagrange multipliers and look for the stationary points of (note that we drop subscript $c$):
+
+\begin{equation*}
+L(\pi) = f(\pi) - \lambda \left(\sum_{j=1}^m \pi_j - 1\right) = \sum_{j=1}^m N_j \log \pi_j - \lambda \left(\sum_{j=1}^m \pi_j - 1\right)
+\end{equation*}
+
+We need to solve:
+
+\begin{equation*}
+\frac{\partial L}{\partial \pi_i} = \frac{N_i}{\pi_i} - \lambda = 0 \quad \forall\ i=1\ldots m
+\end{equation*}
+
+\begin{equation*}
+\frac{\partial L}{\partial \lambda} = 1 - \sum_{j=1}^m \pi_j = 0
+\end{equation*}
+
+From the first equation: $\pi_i = \dfrac{N_i}{\lambda}$. Substituting into the second:
+
+\begin{equation*}
+\sum_{j=1}^m \pi_j = \frac{1}{\lambda} \sum_{j=1}^m N_j = 1 \implies \lambda = \sum_{j=1}^m N_j = N
+\end{equation*}
+
+Therefore:
+
+\begin{equation*}
+\pi_i = \frac{N_i}{N}
+\end{equation*}
+
+The ML solution for each class is thus:
+
+\begin{equation*}
+\pi_{c,i}^* = \frac{N_{c,i}}{N_c}
+\end{equation*}
+
+and we can compute the class likelihood as:
+
+\begin{equation*}
+P(X_t = x_t \mid C_t = c) = \pi_{c, x_t}^*
+\end{equation*}
+
+If we have multiple categorical features, we could model their joint probability as a single categorical random variable whose values correspond to all possible combinations of the features. However, the number of possible combinations grows exponentially and quickly becomes intractable.
+
+To address this, we can adopt the Naive Bayes assumption, treating the features as independent. This allows us to estimate the parameters for each feature separately using ML estimation, and then combine them to model the overall likelihood:
+
+\begin{equation*}
+P(X_t = x_t \mid C_t = c) = \prod_j \pi_{c, x_t, [j]}
+\end{equation*}
+
+where $j$ denotes the feature index.
+
+We consider a classification problem modeled with a generative multinomial approach. The following assumptions are made:
+
+Features are discrete.
+
+Each sample is represented by a feature vector $\mathbf{x} = (x \ldots x[m])$, where each $x[j]$ indicates the count of occurrences of a specific event or category, and each feature vector is modeled using a multinomial distribution.
+
+We have a set of labeled training samples $\mathcal{D} = \{(x_1, c_1) \ldots (x_n, c_n)\}$
+
+All samples are i.i.d.
+
+Thus, for each class $c$, we have a set of parameters:
+
+\begin{equation*}
+\pi_c = (\pi_{c,1} \ldots \pi_{c,m})
+\end{equation*}
+
+The probability for feature vector $\mathbf{x}$ is given by the multinomial density:
+
+\begin{equation*}
+P(X = x \mid C = c) = \frac{(\sum_{j=1}^m x[j])!}{\prod_{j=1}^m x[j]!} \prod_{j=1}^m \pi_{c,j}^{x[j]} \propto \prod_{j=1}^m \pi_{c,j}^{x[j]}
+\end{equation*}
+
+We can use the ML estimation. As in the previous case, the likelihood factorizes over classes, thus:
+
+\begin{equation*}
+\ell(\Pi) = \sum_c \ell_c(\pi_c) + \xi
+\end{equation*}
+
+with:
+
+\begin{equation*}
+\ell_c(\pi_c) = \sum_{i: c_i = c} \sum_{j=1}^m x_{i,[j]} \log \pi_{c,j}
+\end{equation*}
+
+Note that we did not write the multinomial coefficient since it is constant with respect to $\Pi$ and thus can be absorbed in $\xi$.
+
+Also in this case we can express the log-likelihood as:
+
+\begin{equation*}
+\ell_c(\pi_c) = \sum_{j=1}^m N_{c,j} \log \pi_{c,j}
+\end{equation*}
+
+where:
+
+\begin{equation*}
+N_{c,j} = \sum_{i: c_i = c} x_{i,[j]}
+\end{equation*}
+
+is the total number of occurrences of event $j$ (word $j$) in the samples of class $c$.
+
+The problem has exactly the same form as the one we solved for the categorical case. Thus the ML solution is again:
+
+\begin{equation*}
+\pi_{c,j} = \frac{N_{c,j}}{N_c}
+\end{equation*}
+
+where $N_c$ is the total number of words for class $c$:
+
+\begin{equation*}
+N_c = \sum_j N_{c,j} = \sum_{i: c_i = c} \sum_{j=1}^m x_{i,[j]}
+\end{equation*}
+
+Let's consider a binary task for a multinomial case. We write the log-likelihood ratio:
+
+\begin{equation*}
+llr(x) = \log \frac{P(X = x \mid C = h_1)}{P(X = x \mid C = h_0)} = \sum_{j=1}^m x[j] \log \pi_{h_1, j} - \sum_{j=1}^m x[j] \log \pi_{h_0, j} = x^T b
+\end{equation*}
+
+with $\mathbf{b} = (\log \pi_{h_1,1} - \log \pi_{h_0,1}, \ldots, \log \pi_{h_1,m} - \log \pi_{h_0,m})$.
+
+Again, we have linear decision functions.
+
+Rare feature values can cause problems: if a feature value does not appear in a class, we will estimate a probability of zero for that value in the class. Any test sample containing that feature value will then have zero probability of belonging to the class.
+
+To address this, we can introduce pseudo-counts, assuming that each class contains at least one occurrence of every possible feature value. In practice, this means adding a fixed value to the observed counts before computing the ML solution.
+
+This approach corresponds to a Maximum-a-posterior estimate using Dirichlet prior distribution.
+
+
+Just some notes.
+
+A Bayesian treatment of the hyperparameters is a more appropriate way to deal with limited sample sizes.
+
+If we want to partially account for correlations between features, we can consider combinations of feature values (such as pairs or triplets) instead of modeling each feature independently.
+
+Remember that we can also combine different models (categorical, multinomial, …) through a Naive Bayes assumption.
+
+Note that for both the categorical model and the multinomial model, the ML solution for the parameters $\pi_{c,j}$ corresponds to the relative frequencies of occurrences.
+
+We can go further and show that the two models are equivalent. Considering only samples of a single class, in the first case the log-likelihood for a given class is given by:
+
+\begin{equation*}
+\ell_X(\pi) = \sum_{i=1}^n \log \pi_{x_i} = \sum_{j=1}^m N_j \log \pi_j
+\end{equation*}
+
+whereas in the second case:
+
+\begin{equation*}
+\ell_Y(\pi) = \log \frac{(\sum_{j=1}^m y[j])!}{\prod_{i=1}^m y[j]!} + \sum_{j=1}^m y_j \log \pi_j = \xi + \sum_{j=1}^m N_j \log \pi_j
+\end{equation*}
+
+The corresponding likelihoods $L_X(\pi)$ and $L_Y(\pi)$ are proportional:
+
+\begin{equation*}
+L_X(\pi) \propto L_Y(\pi)
+\end{equation*}
+
+Therefore, the ML estimates will be the same in both cases. The Bayesian posterior probabilities for the model parameters will also be identical. As a result, inference does not change: for any given test sample, the class likelihoods remain proportional, leading to equal binary log-likelihood ratios and identical class posterior probabilities.

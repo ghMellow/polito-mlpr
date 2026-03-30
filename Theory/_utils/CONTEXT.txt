@@ -1,0 +1,30 @@
+
+# Linee guida per la stesura dei capitoli
+
+Crea il testo dei capitoli in inglese, lasciando in italiano solo le sezioni di Integrazione Teorica (i box grigi).
+
+Crea un documento LaTeX usando il testo fornito dall'utente e seguendo questa struttura:
+
+
+- Impostare nel preambolo o subito dopo il titolo:
+  - \setlength{\parindent}{0pt}  % Nessun rientro a inizio paragrafo
+  - \setlength{\parskip}{0.7em}  % Spazio extra tra paragrafi
+
+- Evidenziare i concetti chiave con il grassetto:
+  - Esempio: \textbf{Machine Learning}: definizione...
+
+- Le integrazioni teoriche devono seguire questo stile LaTeX:
+
+\begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
+\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
+testo
+\begin{equation*}
+equazioni
+\end{equation*}
+\end{tcolorbox}
+
+- Ogni nuovo concetto/paragrafo va separato da una riga vuota (o sarà gestito automaticamente da \parskip).
+
+- Usare la stessa struttura e stile per tutti i capitoli futuri per garantire uniformità e chiarezza.
+
+- non inserire \end{document} altrimenti si rompe tutto
