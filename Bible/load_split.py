@@ -13,17 +13,20 @@ def load_iris_binary():
     L[L==2] = 0 # We assign label 0 to virginica (was label 2)
     return D, L
 
-def split_db_2to1(D, L, seed=0):
-    nTrain = int(D.shape[1] * 2.0 / 3.0)
-    np.random.seed(seed)
-    idx = np.random.permutation(D.shape[1])  # Random permutation of indices in the range [0, D.shape[1])
-    idxTrain = idx[0:nTrain]
-    idxTest = idx[nTrain:]
+def split_db_2to1(D, L, seed=42):
+    nTrain = int(D.shape[1] * 2.0 / 3.0)  # Number of training samples (2/3 of the total)
+    np.random.seed(seed)  # Set the random seed for reproducibility
+    idx = np.random.permutation(D.shape[1])  # Generate a random permutation of all sample indices (these indices directly correspond to the columns/samples of the original dataset)
+    idxTrain = idx[0:nTrain]  # Select the first nTrain indices for training
+    idxTest = idx[nTrain:]    # The remaining indices are for validation
 
-    DTR = D[:, idxTrain]
-    DVAL = D[:, idxTest]
-    LTR = L[idxTrain]
-    LVAL = L[idxTest]
+    # Select data and labels using the index vectors idxTrain and idxTest.
+    # These are arrays of randomly generated indices, so only the samples (columns) with those indices are selected.
+    # The selection is by position (index), not by value.
+    DTR = D[:, idxTrain]   # Training data: all features, only training samples
+    DVAL = D[:, idxTest]   # Validation data: all features, only validation samples
+    LTR = L[idxTrain]      # Training labels: only training samples
+    LVAL = L[idxTest]      # Validation labels: only validation samples
 
     return (DTR, LTR), (DVAL, LVAL)
 

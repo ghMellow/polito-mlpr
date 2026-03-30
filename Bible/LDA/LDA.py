@@ -95,14 +95,13 @@ def apply_lda_reduction(DTR, LTR, DVAL, m, class1=1, class2=2):
 
 
 
-def lda_binary_pipeline(DTR, LTR, DVAL, LVAL, class1=1, class2=2):
+def lda_binary_pipeline(DTR, LTR, DVAL, LVAL, class1=1, class2=2, m=1):
     """
     Complete LDA binary classification pipeline
     """
     print("=== LDA BINARY CLASSIFICATION ===")
 
     # Compute LDA (1D for binary problem)
-    m=1
     DTR_lda, DVAL_lda = apply_lda_reduction(DTR, LTR, DVAL, m, class1, class2)
 
     # Compute threshold

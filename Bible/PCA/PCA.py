@@ -32,7 +32,7 @@ def apply_pca_reduction(DTR, DVAL, pca_dim):
     return DTR_pca, DVAL_pca
 
 
-def pca_binary_pipeline(DTR, LTR, DVAL, LVAL, class1=1, class2=2):
+def pca_binary_pipeline(DTR, LTR, DVAL, LVAL, class1=1, class2=2, m=1):
     """
     PCA binary classification pipeline (using first principal component)
     Not optimal classifier, PCA used as pre-processing method to reduce dimensionality/noise.
@@ -40,7 +40,7 @@ def pca_binary_pipeline(DTR, LTR, DVAL, LVAL, class1=1, class2=2):
     print("\n=== PCA BINARY CLASSIFICATION ===")
 
     # Compute PCA (1D - first principal component)
-    P, mu = compute_pca(DTR, m=1)
+    P, mu = compute_pca(DTR, m)
     print("PCA matrix computed")
 
     # Project training data
