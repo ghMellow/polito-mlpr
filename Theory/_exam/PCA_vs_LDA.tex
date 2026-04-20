@@ -1,0 +1,83 @@
+Both \textbf{PCA} and \textbf{LDA} are linear dimensionality reduction techniques that map data from an $n$-dimensional feature space to a lower $m$-dimensional space ($m \ll n$), but they differ fundamentally in supervision, objective, and the nature of the directions they find.
+
+\bigskip
+\section*{Goals and Formulation}
+
+\textbf{PCA} is an \emph{unsupervised} technique. Its goal is to find an orthogonal projection matrix $P \in \mathbb{R}^{n \times m}$ that best preserves the structure of the data, without any knowledge of class labels. Data is first centered by subtracting the mean $\bar{\mathbf{x}}$, and then PCA seeks directions that capture the most variance. The projection of a sample is $\mathbf{y} = P^T\mathbf{x}$, and the reconstruction in the original space is $\hat{\mathbf{x}} = P\mathbf{y}$.
+
+\textbf{LDA} is a \emph{supervised} technique. Its goal is to find a projection matrix $W \in \mathbb{R}^{n \times m}$ such that the projected data has maximum separation between classes and minimum spread within each class. It explicitly uses class labels to compute class means $\boldsymbol{\mu}_c$ and the global mean $\boldsymbol{\mu}$. The projection of a sample is $\tilde{\mathbf{x}} = W^T\mathbf{x}$.
+
+\bigskip
+\section*{Training Objective}
+
+The PCA objective is to \textbf{minimize the average reconstruction error}:
+\[
+P^* = \arg\min_P \frac{1}{K}\sum_{i=1}^K \|\mathbf{x}_i - PP^T\mathbf{x}_i\|^2, \quad \text{s.t. } P^TP = I
+\]
+This is equivalent to \textbf{maximizing the projected variance}:
+\[
+\widetilde{L}(P) = \text{Tr}\!\left(P^T C\, P\right)
+\]
+where $C = \frac{1}{K}\sum_i (\mathbf{x}_i - \bar{\mathbf{x}})(\mathbf{x}_i - \bar{\mathbf{x}})^T$ is the empirical covariance matrix. The constraint $P^TP = I$ ensures orthonormality of the components.
+
+The LDA objective is to \textbf{maximize the Fisher ratio} --- the ratio of between-class variability to within-class variability. \textbf{For the multi-direction case, the criterion is:}
+\[
+L = \text{Tr}\!\left(\widetilde{S}_W^{-1}\widetilde{S}_B\right) = \text{Tr}\!\left((W^T S_W W)^{-1}(W^T S_B W)\right)
+\]
+where the scatter matrices are:
+\[
+S_B = \frac{1}{N}\sum_{c=1}^K n_c(\boldsymbol{\mu}_c - \boldsymbol{\mu})(\boldsymbol{\mu}_c - \boldsymbol{\mu})^T, \quad S_W = \frac{1}{N}\sum_{c=1}^K \sum_{i=1}^{n_c}(\mathbf{x}_{c,i} - \boldsymbol{\mu}_c)(\mathbf{x}_{c,i} - \boldsymbol{\mu}_c)^T
+\]
+Unlike PCA, LDA does \emph{not} require $W$ to be orthogonal.
+
+\bigskip
+\section*{Characteristics of the Directions}
+
+The table below summarizes the key properties of the directions found by each method:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Property} & \textbf{PCA Principal Components} & \textbf{LDA Discriminant Directions} \\
+\hline
+Computed from & Eigenvectors of covariance matrix $C$ & Eigenvectors of $S_W^{-1}S_B$ \\
+\hline
+Ordering & By descending eigenvalue (= variance) & By descending eigenvalue (= Fisher ratio) \\
+\hline
+Orthogonality & Guaranteed ($P^TP = I$) & Not required \\
+\hline
+Max number of directions & Up to $n$ (feature dimensionality) & At most $K-1$ (number of classes minus one) \\
+\hline
+Label-awareness & No --- may not be discriminant & Yes --- explicitly maximizes class separation \\
+\hline
+Interpretability & Directions of highest variance & Directions of highest class separability \\
+\hline
+\end{tabular}
+}%
+\end{center}
+
+\medskip
+The $K-1$ limit on LDA directions follows directly from the rank of $S_B$: since $S_B$ is a sum of $K$ rank-one matrices centered around the global mean, it has at most $K-1$ non-zero eigenvalues. In contrast, PCA can extract up to $n$ components, selected by retaining enough to explain a target fraction $t$ of total variance:
+\[
+\min_m \; m \quad \text{s.t.} \quad \frac{\sum_{i=1}^m \sigma_i}{\sum_{i=1}^n \sigma_i} \geq t
+\]
+
+\bigskip
+\section*{Use in Classification}
+
+\textbf{PCA for classification} is used as a \emph{preprocessing step}. It reduces dimensionality before feeding data into a separate classifier (e.g., logistic regression, k-NN). Because PCA is unsupervised, there is no guarantee the retained components are discriminant --- variance-maximizing directions and class-separating directions can differ significantly.
+
+\textbf{LDA for classification} works directly. For a binary problem, the optimal direction is:
+\[
+\mathbf{w} \propto S_W^{-1}(\boldsymbol{\mu}_2 - \boldsymbol{\mu}_1)
+\]
+and the classification rule assigns sample $\mathbf{x}_t$ to class $C_1$ if $\mathbf{w}^T\mathbf{x}_t < t$, where the threshold is the midpoint of the projected class means:
+\[
+t = \frac{m_1 + m_2}{2}, \quad m_c = \mathbf{w}^T\boldsymbol{\mu}_c
+\]
+This is equivalent to a nearest-centroid classifier in the projected space. LDA implicitly assumes that within-class distributions are Gaussian with equal covariance, so the linear decision boundary is optimal under those assumptions.
+
+A common practical strategy is to \textbf{apply PCA first, then LDA}: PCA removes noise and reduces the risk of $S_W$ becoming singular (which happens when the number of features is large relative to the number of samples), and LDA then finds the most discriminant subspace within the PCA-reduced space.

@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1774614910.8989 "/Users/nicolotermine/Desktop/Politecnico/02_Machine learning & pattern recognitions/Appunti Luca/MLPR.tex" "MLPR.pdf" "MLPR" 1774614911.66636 0
-  "/Users/nicolotermine/Desktop/Politecnico/02_Machine learning & pattern recognitions/Appunti Luca/MLPR.tex" 1773333309.86009 1677 804d81761f6a7ee6efbd60fe0585e404 ""
+["pdflatex"] 1775042747.60267 "/Users/nicolotermine/zMellow/GitHub-Poli/Polito/MLPR/Theory/MLPR.tex" "MLPR.pdf" "MLPR" 1775042748.40746 0
+  "/Users/nicolotermine/zMellow/GitHub-Poli/Polito/MLPR/Theory/MLPR.tex" 1773333309.86009 1677 804d81761f6a7ee6efbd60fe0585e404 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -223,16 +223,16 @@
   "/usr/local/texlive/2026/texmf-var/web2c/pdftex/pdflatex.fmt" 1772711999 3636763 dd26c228e4a4cdf4f959587e42158152 ""
   "/usr/local/texlive/2026/texmf.cnf" 1772409725 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
   "BayesDecisionsAndModelEvaluation/BayesDecisionsAndModelEvaluation.tex" 1773333869.90261 22889 81317d1909158b3da7d11ef3158ebe28 ""
-  "DimensionalityReduction/DimensionalityReduction.tex" 1774614910.56364 13796 5ea2c7182b343274bd527a353e4c768a ""
+  "DimensionalityReduction/DimensionalityReduction.tex" 1775042747.39618 14275 bf939db56161ac2268a4b8353b87d5a4 ""
   "GaussianMixtureModels/GaussianMixtureModels.tex" 1773333065.48464 28144 36a710344229ebb73645972a79ce4f0f ""
   "GenerativeGaussianModels/GenerativeGaussianModels.tex" 1773417919.32164 11390 c09b69e089cd603bed851e0f8edd7d05 ""
   "GenerativeMultinomialModels/GenerativeMultinomialModels.tex" 1773227550.64489 9424 a15d6c11dc22091c073b83c024b20309 ""
   "Introduction/Introduction.tex" 1772728723.28553 7082 45108c600ac5f048fd0e34feff0edb28 ""
   "LogisticRegression/LogisticRegression.tex" 1773317463.93814 23747 7adf05223887deff3d5b9549222a87ad ""
-  "MLPR.aux" 1774614911.58438 1945 973ef7fa0cfc38359dbf3aba2fcbc02e "pdflatex"
-  "MLPR.out" 1774614911.58528 2372 e9e91781cec120ba5065f56f76808298 "pdflatex"
+  "MLPR.aux" 1775042748.31902 1945 973ef7fa0cfc38359dbf3aba2fcbc02e "pdflatex"
+  "MLPR.out" 1775042748.31965 2372 e9e91781cec120ba5065f56f76808298 "pdflatex"
   "MLPR.tex" 1773333309.86009 1677 804d81761f6a7ee6efbd60fe0585e404 ""
-  "MLPR.toc" 1774614911.58552 1169 12477520b57bcda7846119d20d992ab7 "pdflatex"
+  "MLPR.toc" 1775042748.31981 1169 12477520b57bcda7846119d20d992ab7 "pdflatex"
   "ProbabilityDensityEstimation/ProbabilityDensityEstimation.tex" 1772729287.43551 4018 bbe63b92f2ab53b9e6db3dc32a1f7860 ""
   "ScoreCalibrationAndFusion/ScoreCalibrationAndFusion.tex" 1773333286.13587 19838 71855d19f55287109da19bd4c008c1c4 ""
   (generated)

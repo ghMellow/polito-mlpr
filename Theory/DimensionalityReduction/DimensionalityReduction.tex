@@ -40,7 +40,7 @@ Since $\text{Tr}$ is a linear operator, minimizing $L(P)$ is equivalent to maxim
 
 We require that $P$ is an orthogonal matrix.
 
-The optimal solution is given by the matrix $P$ whose columns are the $m$ eigenvectors of $\frac{1}{K}\sum_{i=1}^{K} \mathbf{x}_i\mathbf{x}_i^T$ corresponding to the $m$ largest eigenvalues. Let:
+The optimal solution is given by the matrix $P$ whose columns are the $m$ eigenvectors corresponding to the $m$ largest eigenvalues of $\frac{1}{K}\sum_{i=1}^{K} \mathbf{x}_i\mathbf{x}_i^T$. Let:
 
 \begin{equation*}
 \frac{1}{K}\sum_{i=1}^{K} \mathbf{x}_i\mathbf{x}_i^T = U\Sigma U^T
@@ -64,7 +64,8 @@ Then
 P^* = [\mathbf{u}_1 \ldots \mathbf{u}_m]
 \end{equation*}
 
-As a consequence of projecting onto the eigenvectors of the covariance matrix, PCA transforms the data into a new coordinate system where the greatest variance lies on the first axis, the second greatest on the second, and so on. This is why PCA can be interpreted as the linear mapping that preserves the directions with the highest variance.
+As a consequence of projecting onto the eigenvectors of the covariance matrix, PCA transforms the data into a new coordinate system where the greatest variance lies on the first axis, the second greatest on the second, and so on. 
+\textbf{This is why PCA can be interpreted as the linear mapping that preserves the directions with the highest variance.}
 
 If the dataset is not zero-mean, the first PCA direction will approximately connect the origin and the dataset mean, which is generally not informative. It is therefore essential to center the data by subtracting the dataset mean $\bar{\mathbf{x}}$ before computing PCA. The PCA subspace $P$ is then computed from the eigenvectors of the empirical covariance matrix:
 
@@ -86,6 +87,14 @@ where $\sigma_i$ is the $i$-th largest eigenvalue.
 \begin{itemize}
 	\item Computing the sample covariance matrix can be difficult when the feature space is very large.
 	\item Since PCA is unsupervised, we have no guarantee to obtain discriminant directions.
+	\item Practical purposes of PCA:
+	\begin{itemize}
+		\item Compress information
+		\item Remove unwanted variability (noise)
+		\item Simplify classification by reducing the number of parameters to estimate
+		\item Visualize the data
+		\item A further practical advantage is that PCA automatically eliminates directions with zero or very low variance, which could cause numerical instability in some classifiers (e.g., division by zero variance).
+	\end{itemize}
 \end{itemize}
 
 
@@ -164,7 +173,7 @@ where
 \lambda(\mathbf{w}) = L(\mathbf{w}) = \frac{\mathbf{w}^T S_B \mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}}
 \end{equation*}
 
-The maximum of $L$ is thus the eigenvector of $S_W^{-1}S_B$ corresponding to the largest eigenvalue.
+The maximum of $L$ is thus the eigenvector corresponding to the largest eigenvalue of $S_W^{-1}S_B$.
 
 \begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
 \textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
@@ -232,7 +241,7 @@ C(\mathbf{x}_t) = \begin{cases} C_1 & \text{if } \mathbf{w}^T\mathbf{x}_t < t \\
 where $t = \frac{m_1 + m_2}{2}$.
 
 \vspace{1em}
-Despite being originally introduced to solve binary classification problems, LDA has found a large success as a dimensionality reduction technique. In this case, we are interested in looking for the $m$ most discriminant directions. We represent these directions as a matrix $W \in \mathbb{R}^{n \times m}$, whose columns contain the directions we want to find. We do not require that $W$ is orthogonal. We have:
+Despite being originally introduced to solve binary classification problems, LDA has found a large success as a dimensionality reduction technique. In this case, \textbf{we are interested in looking for the $m$ most discriminant directions. We represent these directions as a matrix $W \in \mathbb{R}^{n \times m}$, whose columns contain the directions we want to find.} We do not require that $W$ is orthogonal. We have:
 
 \begin{equation*}
 	\widetilde{\mathbf{x}} = W^T\mathbf{x}

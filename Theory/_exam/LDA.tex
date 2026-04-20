@@ -1,0 +1,35 @@
+\textbf{Motivation.} LDA is a linear \textbf{supervised} technique for dimensionality reduction and classification. \textbf{Unlike PCA, which maximizes variance without knowledge of class labels, LDA exploits class information to find directions that explicitly separate groups.} The goal is to find the direction $\mathbf{w}$ that maximizes the separation between classes relative to the within-class scatter:
+
+$$\max_{\mathbf{w}} L(\mathbf{w}) = \frac{s_B}{s_W} = \frac{\mathbf{w}^T S_B \mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}}$$
+
+where the scatter matrices are:
+
+$$S_B = \frac{1}{N}\sum_{c=1}^{K} n_c (\boldsymbol{\mu}_c - \boldsymbol{\mu})(\boldsymbol{\mu}_c - \boldsymbol{\mu})^T, \qquad S_W = \frac{1}{N}\sum_{c=1}^{K}\sum_{i=1}^{n_c} (\mathbf{x}_{c,i} - \boldsymbol{\mu}_c)(\mathbf{x}_{c,i} - \boldsymbol{\mu}_c)^T$$
+
+$S_B$ measures how far the class means are from the global mean; $S_W$ measures how spread out the samples are around their class mean. Maximizing the ratio means finding a projection where classes are compact internally and far apart from each other.
+
+\textbf{Solution derivation.} Setting $\nabla_\mathbf{w} L = 0$, dividing by the scalar $(\mathbf{w}^T S_W \mathbf{w})$ and multiplying by $S_W^{-1}$, leads to the eigenvalue problem:
+
+$$S_W^{-1} S_B \mathbf{w} = \lambda(\mathbf{w})\,\mathbf{w}, \qquad \lambda(\mathbf{w}) = L(\mathbf{w})$$
+
+Maximizing $L$ is thus equivalent to maximizing $\lambda$: the optimal direction is the eigenvector of $S_W^{-1}S_B$ with the largest eigenvalue.
+
+\textbf{Binary case.} With two classes, $S_B = k(\boldsymbol{\mu}_2 - \boldsymbol{\mu}_1)(\boldsymbol{\mu}_2-\boldsymbol{\mu}_1)^T$, which has rank 1, and the solution simplifies in closed form:
+
+$$\mathbf{w} \propto S_W^{-1}(\boldsymbol{\mu}_2 - \boldsymbol{\mu}_1)$$
+
+\textbf{This formula has a direct interpretation: compute the difference between the two class means and "correct" it for within-class scatter via $S_W^{-1}$. If the classes have the same within-class scatter ($S_W = I$), the optimal direction is simply the one joining the two means.}
+
+The classification rule assigns $\mathbf{x}_t$ to the closest class in the projected space, with threshold $t = \frac{m_1+m_2}{2}$:
+
+$$C(\mathbf{x}_t) = \begin{cases} C_1 & \mathbf{w}^T\mathbf{x}_t < t \\ C_2 & \mathbf{w}^T\mathbf{x}_t \geq t \end{cases}$$
+
+\textbf{The threshold $t$ is the mean of the projected class means: it is the optimal choice under the assumption of equal within-class variance and equal prior. If the priors differ, the threshold must be shifted accordingly.}
+
+\textbf{Extension to $m$ dimensions.} The $m$ most discriminant directions are collected in $W \in \mathbb{R}^{n\times m}$. The criterion becomes:
+
+$$\max_W \; \text{Tr}\!\left(\tilde{S}_W^{-1}\tilde{S}_B\right), \quad \tilde{S}_B = W^T S_B W,\; \tilde{S}_W = W^T S_W W$$
+
+The solution consists of the $m$ eigenvectors of $S_W^{-1}S_B$ with the largest eigenvalues. \textbf{An important structural constraint: the rank of $S_B$ is at most $K-1$, because it is defined by $K$ means constrained to sum to the global mean. As a result, the maximum number of discriminant directions that can be extracted is $K-1$, regardless of the original data dimension. For binary classification, there is always only one direction.}
+
+\textbf{Limitations and practical considerations.} LDA assumes that the within-class distributions are Gaussian with the same covariance matrix — an assumption often violated in practice. $S_W$ can become singular when the number of samples is less than the data dimension, making $S_W^{-1}$ not computable. \textbf{A common solution is to apply PCA as a pre-processing step before LDA: PCA reduces dimensionality by eliminating directions with zero or near-zero variance, making $S_W$ invertible and reducing the risk of overfitting. However, care must be taken not to eliminate discriminant directions with PCA before LDA can find them — the number of PCA components should be chosen carefully, typically via cross-validation.}

@@ -1,0 +1,27 @@
+\textbf{Motivation.} Dimensionality reduction maps data from an $n$-dimensional space to an $m$-dimensional one, with $m \ll n$. The practical purposes are fourfold: \textbf{to compress information, remove unwanted variability (noise), simplify classification by reducing the number of parameters to estimate, and visualize the data.}
+
+\textbf{PCA is the standard linear and unsupervised technique for this task.} The matrix $P \in \mathbb{R}^{n \times m}$ with orthonormal columns minimizes the average reconstruction error:
+
+$$P^* = \arg\min_P \frac{1}{K}\sum_i \|\mathbf{x}_i - PP^T\mathbf{x}_i\|^2 \quad \text{s.t. } P^TP = I$$
+
+Equivalently, it maximizes the projected variance:
+
+$$\widetilde{L}(P) = \text{Tr}\!\left(P^T \underbrace{\frac{1}{K}\sum_i \mathbf{x}_i\mathbf{x}_i^T}_{=\,C} P\right)$$
+
+The solution consists of the $m$ eigenvectors of $C$ with the largest eigenvalues. From the decomposition $C = U\Sigma U^T$:
+
+$$P^* = [\mathbf{u}_1, \ldots, \mathbf{u}_m]$$
+
+The result is a coordinate system where each axis captures the maximum remaining variance, and the variance along each axis corresponds to the associated eigenvalue.
+
+\textbf{Non-centered data.} If the data are not zero-mean, the first eigenvector points towards the dataset mean — not informative. The mean $\bar{\mathbf{x}}$ should always be subtracted, and $C$ becomes the empirical covariance matrix:
+
+$$C = \frac{1}{K}\sum_i (\mathbf{x}_i - \bar{\mathbf{x}})(\mathbf{x}_i - \bar{\mathbf{x}})^T$$
+
+\textbf{Choice of $m$.} $m$ is a hyperparameter: it does not emerge from the PCA solution itself. Two approaches: cross-validation, or a criterion on explained variance — choose the smallest $m$ such that:
+
+$$\frac{\sum_{i=1}^{m} \sigma_i}{\sum_{i=1}^{n} \sigma_i} \geq t \quad (\text{e.g. } t = 0.95)$$
+
+\textbf{The choice of $m$ introduces a trade-off.} If $m$ is too large, too many dimensions remain, increasing the number of parameters to estimate in the downstream classifier and the risk of overfitting. If $m$ is too small, discriminant directions may be lost, causing underfitting. Cross-validation allows balancing this trade-off for the specific task.
+
+\textbf{Limitations.} Computing $C$ is expensive in high-dimensional spaces. Most importantly: being unsupervised, PCA does not guarantee to preserve discriminant directions — directions of highest variance do not necessarily coincide with those useful for class separation. \textbf{A further practical advantage is that PCA automatically eliminates directions with zero or very low variance, which could cause numerical instability in some classifiers} (e.g., division by zero variance).

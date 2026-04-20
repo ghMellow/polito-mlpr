@@ -1,4 +1,3 @@
-
 # Linee guida per la stesura dei capitoli
 
 Crea il testo dei capitoli in inglese, lasciando in italiano solo le sezioni di Integrazione Teorica (i box grigi).
@@ -28,3 +27,13 @@ equazioni
 - Usare la stessa struttura e stile per tutti i capitoli futuri per garantire uniformità e chiarezza.
 
 - non inserire \end{document} altrimenti si rompe tutto
+
+- Per tabelle larghe che rischiano di uscire dai margini, racchiudere l'ambiente tabular in:
+  \resizebox{\textwidth}{!}{%
+    \begin{tabular}{...}
+    ...
+    \end{tabular}
+  }%
+  Questo forza la tabella a rientrare nei margini della pagina senza richiedere pacchetti aggiuntivi.
+
+- Per separare visivamente le righe di una tabella, aggiungere \hline dopo ogni riga.
