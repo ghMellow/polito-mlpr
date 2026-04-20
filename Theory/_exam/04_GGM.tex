@@ -1,0 +1,52 @@
+\textbf{Motivation.} Generative Gaussian Models (GGM) address closed-set classification by explicitly modeling the data-generation process for each class. \textbf{Unlike discriminative models that learn decision boundaries directly, generative models assume a probabilistic class-conditional density and apply Bayes' theorem to compute posterior probabilities.} The fundamental assumption is that the likelihood of the data given a class follows a multivariate Gaussian distribution, allowing us to exploit the well-understood properties of Gaussians to derive tractable classification rules.
+
+\textbf{Probabilistic framework.} Classification is performed by computing the posterior probability:
+
+$$P(C_t = c | X_t = \mathbf{x}_t) = \frac{f_{X|C}(\mathbf{x}_t | c) \cdot P(C = c)}{\sum_{c'} f_{X|C}(\mathbf{x}_t | c') \cdot P(C = c')}$$
+
+The classifier assigns $\mathbf{x}_t$ to the class with the highest posterior. The joint density factorizes as:
+$$f_{X,C}(\mathbf{x}, c) = f_{X|C}(\mathbf{x}|c) \cdot P(C = c)$$
+
+The class prior $P(C = c)$ is determined by the application; the class likelihood $f_{X|C}(\mathbf{x}|c)$ is learned from data.
+
+\textbf{Mathematical formulation.} GGM assumes that each class likelihood is a multivariate Gaussian:
+
+$$(X_t | C_t = c) \sim \mathcal{N}(\boldsymbol{\mu}_c, \boldsymbol{\Sigma}_c)$$
+
+The log-likelihood per sample in class $c$ is:
+
+$$\log f_{X|C}(\mathbf{x}|c) = -\frac{D}{2}\log 2\pi - \frac{1}{2}\log|\boldsymbol{\Sigma}_c| - \frac{1}{2}(\mathbf{x}-\boldsymbol{\mu}_c)^T\boldsymbol{\Sigma}_c^{-1}(\mathbf{x}-\boldsymbol{\mu}_c)$$
+
+\textbf{Training via ML estimation.} Parameters $\boldsymbol{\mu}_c$ and $\boldsymbol{\Sigma}_c$ are estimated by maximizing the log-likelihood class by class. The closed-form ML solutions are:
+
+$$\boldsymbol{\mu}_c^* = \frac{1}{N_c}\sum_{i: c_i = c} \mathbf{x}_i, \qquad \boldsymbol{\Sigma}_c^* = \frac{1}{N_c}\sum_{i: c_i = c} (\mathbf{x}_i - \boldsymbol{\mu}_c^*)(\mathbf{x}_i - \boldsymbol{\mu}_c^*)^T$$
+
+where $N_c$ is the number of samples in class $c$. \textbf{Each class is estimated independently: the sample mean is the class center, and the sample covariance captures the within-class spread.}
+
+\textbf{Inference: binary classification and LLR.} For a binary decision, the classifier compares the log-likelihood ratio (LLR) to a threshold derived from the log-odds:
+
+$$\text{llr}(\mathbf{x}_t) = \log\frac{f_{X|C}(\mathbf{x}_t|c_1)}{f_{X|C}(\mathbf{x}_t|c_0)} \gtrless -\log\frac{P(C=c_1)}{P(C=c_0)}$$
+
+The LLR is a \textbf{quadratic function of $\mathbf{x}$:}
+
+$$\text{llr}(\mathbf{x}) = \mathbf{x}^T A \mathbf{x} + \mathbf{x}^T \mathbf{b} + c$$
+
+where the quadratic term $A = -\frac{1}{2}(\boldsymbol{\Lambda}_1 - \boldsymbol{\Lambda}_0)$ vanishes only when the two classes share the same covariance ($\boldsymbol{\Sigma}_1 = \boldsymbol{\Sigma}_0$). This produces a \textbf{quadratic decision boundary,} characteristic of QDA (Quadratic Discriminant Analysis).
+
+\textbf{Inference: multiclass classification.} For $K > 2$ classes, assign the sample to:
+
+$$c_t^* = \arg\max_h \left[\log f_{X|C}(\mathbf{x}_t|h) + \log P(C=h)\right]$$
+
+The classifier outputs class-conditional log-likelihoods; the prior term $\log P(C=h)$ is application-dependent and can be adjusted at deployment time.
+
+\textbf{Model variants.} GGM encompasses several important variants:
+
+\begin{itemize}
+\item \textbf{Full covariance (QDA):} Each class has its own full covariance matrix $\boldsymbol{\Sigma}_c$. Highly flexible but requires many samples; decision boundary is quadratic.
+\item \textbf{Tied covariance (LDA-like):} All classes share a common covariance $\boldsymbol{\Sigma}$:
+$$\boldsymbol{\Sigma}^* = \frac{1}{N}\sum_c \sum_{i: c_i = c}(\mathbf{x}_i - \boldsymbol{\mu}_c^*)(\mathbf{x}_i - \boldsymbol{\mu}_c^*)^T$$
+This reduces the number of parameters and produces a \textbf{linear decision boundary} (the quadratic term $A$ cancels). More stable with limited data.
+\item \textbf{Naive Bayes Gaussian:} Each class has a diagonal covariance, assuming feature independence. Simple and computationally efficient, but assumes uncorrelated features.
+\end{itemize}
+
+\textbf{Limitations.} GGM assumes all data within a class are drawn from a Gaussian distribution — a strong assumption often violated in practice. \textbf{Estimating a full covariance matrix requires $\frac{D(D+1)}{2}$ parameters,} which becomes prohibitive in high dimensions and with limited data. The covariance matrix must be invertible; if $N < D$, standard ML estimation fails. A common solution is to apply PCA beforehand to reduce dimensionality and ensure invertibility, though care must be taken not to eliminate discriminant directions.
