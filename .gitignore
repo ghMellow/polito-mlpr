@@ -38,3 +38,10 @@ Thumbs.db
 .idea/
 __pycache__/
 poetry.lock
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
