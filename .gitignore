@@ -1,6 +1,40 @@
-__pycache__/
+# LaTeX generated files
+*.aux
+*.fdb_latexmk
+*.fls
+*.toc
+*.log
+*.out
+*.synctex.gz
+*.dvi
+*.ps
+*.eps
+*.bbl
+*.blg
+*.lof
+*.lot
+*.run.xml
+*.dpth
+*.md5
+*.auxlock
+*.fdb_latexmk
+*.dpth
+*.md5
+*.auxlock
 
+# LaTeX directories
+*/.texpadtmp/
+
+# OS files
 .DS_Store
-poetry.lock
+Thumbs.db
+
+# Editor files
+.vscode/
+*.swp
+*.swo
+*~
 
 .idea/
+__pycache__/
+poetry.lock
