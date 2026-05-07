@@ -1,0 +1,531 @@
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.7em}
+
+\section*{Support Vector Machines}
+
+We now consider a classifier that allows us to give a geometrical interpretation of the
+regularization term (used in the Logistic Regression model): the Support Vector Machine
+(SVM). We will show that SVM can be cast as a generalized risk minimization problem.
+Furthermore, SVMs provide a natural way to achieve non-linear separation without the
+need for an explicit expansion of our features. Note that the output of SVMs cannot be
+directly interpreted in terms of class posterior probabilities.
+
+Let's consider again a binary classification problem.
+
+We assume that we have two classes that are linearly separable, ie we can find a linear
+separation hyperplane that correctly classifies all points of our training set.
+
+The problem is that there is an infinite number of separating hyperplanes, so which one
+should we select?
+
+For this problem, Logistic Regression looks for the hyperplane that maximizes class
+posterior probabilities.
+
+Given a hyperplane $\mathbf{w}$ that separates the classes, we can reduce the loss by considering
+a hyperplane with the same orientation, but larger norm. The model posterior probabilities
+will grow arbitrarily close to 1 and 0 (depending on the class) as the norm of $\mathbf{w}$
+increases.
+
+We can select the hyperplane that separates the classes with the largest margin. The
+margin is defined as the distance of the closest point with respect to the separation
+hyperplane.
+
+Let:
+\[
+f(\mathbf{x}) = \mathbf{w}^T \mathbf{x} + b
+\]
+be the function representing the separation surface.
+
+Let $z_i$ denote the class for $\mathbf{x}_i$, with the encoding:
+\[
+z_i = \begin{cases} +1 & \text{if } c_i = \mathcal{H}_T \\ -1 & \text{if } c_i = \mathcal{H}_F \end{cases}
+\]
+
+The distance of $\mathbf{x}_i$ from the hyperplane is:
+\[
+d(\mathbf{x}_i) = \frac{|f(\mathbf{x}_i)|}{\|\mathbf{w}\|}
+\]
+
+Since classes are separable, we consider solutions which correctly classify all points:
+\[
+f(\mathbf{x}_i) > 0 \text{ if } c_i = \mathcal{H}_T \qquad f(\mathbf{x}_i) < 0 \text{ if } c_i = \mathcal{H}_F
+\]
+
+The maximum margin hyperplane is the hyperplane which maximizes the minimum
+distance of all points from the hyperplane:
+\[
+\mathbf{w}^*, b^* = \arg\max_{\mathbf{w},b} \min_{i \in \{1\ldots n\}} d(\mathbf{x}_i) = \arg\max_{\mathbf{w},b} \min_{i \in \{1\ldots n\}} \frac{|z_i(\mathbf{w}^T \mathbf{x}_i + b)|}{\|\mathbf{w}\|}
+\]
+
+For values $\mathbf{w}, b$ which can correctly separate the classes we have
+$z_i(\mathbf{w}^T \mathbf{x}_i + b) > 0$ for all samples and
+$\min_i z_i(\mathbf{w}^T \mathbf{x}_i + b) > 0$. So, we can drop the constraint by considering
+an equivalent problem:
+\[
+\mathbf{w}^*, b^* = \arg\max_{\mathbf{w},b} \frac{1}{\|\mathbf{w}\|} \min_i \left[ z_i(\mathbf{w}^T \mathbf{x}_i + b) \right] \tag{1}
+\]
+
+The two problems are equivalent:
+\begin{itemize}
+    \item Hyperplanes that do not satisfy this constraint will have $\min_i z_i(\mathbf{w}^T \mathbf{x}_i + b) < 0$, and thus
+    cannot be an optimal solution of the second formulation (classes are separable, so
+    an optimal solution exists with $z_i(\mathbf{w}^T \mathbf{x}_i + b) > 0,\ \forall i = 1\ldots n$).
+    \item For hyperplanes that correctly classify all patterns, the objective functions are the
+    same.
+\end{itemize}
+
+Direct optimization of (1) is non-trivial, thus we further transform the problem to arrive at an
+easier-to-solve, equivalent, problem.
+
+We can observe that the objective function in (1) is invariant under re-scaling of the
+parameters:
+\[
+\frac{1}{\|\mathbf{w}\|} \min_i \left[ z_i(\mathbf{w}^T \mathbf{x}_i + b) \right] = \frac{1}{\|\alpha\mathbf{w}\|} \min_i \left[ z_i(\alpha\mathbf{w}^T \mathbf{x}_i + \alpha b) \right]
+\]
+Thus, if $(\mathbf{w}^*, b^*)$ is an optimal solution, then also
+$(\mathbf{w}', b') = (\alpha\mathbf{w}^*, \alpha b^*)$ is optimal, and
+viceversa.
+
+The collections of values $\{(\alpha\mathbf{w}, \alpha b)\}_{\alpha \in \mathbb{R}_+}$ forms an equivalence class of equivalent
+solutions. For each of these equivalence classes, we are free to select any one of the
+equivalent solutions. We restrict our problem to solutions for which:
+\[
+\min_i z_i(\mathbf{w}^T \mathbf{x}_i + b) = 1
+\]
+
+For all training points we will thus have:
+\[
+z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1, \quad i = 1\ldots n
+\]
+
+The problem in (1) then becomes equivalent to optimizing:
+\[
+\arg\min_{\mathbf{w},b} \frac{1}{2}\|\mathbf{w}\|^2 \quad \text{s.t.} \quad z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1,\ i = 1\ldots n
+\]
+
+Finally, we observe we can drop the last constraint, and solve the equivalent problem:
+\[
+\arg\min_{\mathbf{w},b} \frac{1}{2}\|\mathbf{w}\|^2 \quad \text{s.t.} \quad z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1,\ i = 1\ldots n \tag{2}
+\]
+
+Indeed, an optimal solution of (2) will automatically satisfy $\min_i z_i(\mathbf{w}^T \mathbf{x}_i + b) = 1$. In fact, if
+$\mathbf{w}^*, b^*$ was a solution for which $\min_i z_i(\mathbf{w}^T \mathbf{x}_i + b) = \psi > 1$, then we could build the
+solution $(\mathbf{w}', b') = \left(\frac{\mathbf{w}}{\psi}, \frac{b}{\psi}\right)$ which would still satisfy all constraints, and have a lower
+norm, thus $\mathbf{w}^*, b^*$ would not be optimal.
+
+The SVM objective (primal formulation) thus consists in finding the minimizer of:
+\[
+\arg\min_{\mathbf{w},b} \frac{1}{2}\|\mathbf{w}\|^2 \quad \text{s.t.} \quad z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1,\ i = 1\ldots n
+\]
+
+This is a convex quadratic programming problem: the objective function is convex and the
+constraints form a convex set.
+
+Saying that ``the objective function is convex'' means that the function has the property that any
+local minimum is also a global minimum.
+
+This ensures that optimization algorithms can reliably find the best solution, without getting stuck in
+suboptimal local minima.
+
+To solve the SVM problem we consider a Lagrangian formulation of the problem.
+
+The Lagrangian formulation is a mathematical method used to solve optimization problems with
+constraints. For SVMs, it allows us to combine the objective function and the constraints into a
+single function by introducing Lagrange multipliers. This approach makes it easier to solve the
+problem, especially when dealing with constrained optimization.
+
+For each constraint we introduce the Lagrange multiplier $\alpha_i \geq 0$:
+\[
+L(\mathbf{w}, b, \boldsymbol{\alpha}) = \frac{1}{2}\|\mathbf{w}\|^2 - \sum_{i=1}^n \alpha_i \left[ z_i \left( \mathbf{w}^T \mathbf{x}_i + b \right) - 1 \right]
+\]
+
+The optimal solution is obtained by minimizing $L$ with respect to $\mathbf{w}, b$ while requiring
+that either the derivatives with respect to $\alpha_i$ vanish, subject to the constraints that
+$\alpha_i \geq 0$, or the corresponding $\alpha_i$ is 0.
+
+Since the problem is convex, we can equivalently maximize $L$ with respect to $\alpha_i$ while
+requiring that the derivatives with respect to $\mathbf{w}$ and $b$ vanish, subject to $\alpha_i \geq 0$.
+
+Setting the derivative of $L$ with respect to $\mathbf{w}$ and $b$ equal to zero gives:
+\[
+\mathbf{w} = \sum_{i=1}^n \alpha_i z_i \mathbf{x}_i \qquad 0 = \sum_{i=1}^n \alpha_i z_i
+\]
+
+Replacing the constraints in $L$ gives the dual SVM problem:
+\[
+\max_{\boldsymbol{\alpha}} \sum_{i=1}^n \alpha_i - \frac{1}{2} \sum_{i=1}^n \sum_{j=1}^n \alpha_i \alpha_j z_i z_j \mathbf{x}_i^T \mathbf{x}_j
+\]
+\[
+\text{s.t.} \quad \alpha_i \geq 0,\ i = 1,\ldots,n \qquad \sum_{i=1}^n \alpha_i z_i = 0
+\]
+
+The dual objective function can be expressed in matrix form as:
+\[
+L_D(\boldsymbol{\alpha}) = \sum_{i=1}^n \alpha_i - \frac{1}{2}\sum_{i=1}^n\sum_{j=1}^n \alpha_i \alpha_j z_i z_j \mathbf{x}_i^T \mathbf{x}_j = \boldsymbol{\alpha}^T \mathbf{1} - \frac{1}{2}\boldsymbol{\alpha}^T \mathbf{H} \boldsymbol{\alpha}
+\]
+where $\mathbf{H}$ is the matrix $H_{ij} = z_i z_j \mathbf{x}_i^T \mathbf{x}_j$.
+
+Matrix $\mathbf{H}$ depends on the data only through dot-products $\mathbf{x}_i^T \mathbf{x}_j$. This allows to extend
+SVMs to non-linear classification.
+
+For any feasible solution of the primal problem $\mathbf{w}, b$ and any feasible solution of the dual
+problem $\boldsymbol{\alpha}$ we have that:
+\[
+L_D(\boldsymbol{\alpha}) \leq L_P(\mathbf{w}, b)
+\]
+where $L_P = \frac{1}{2}\|\mathbf{w}\|^2$ is the primal objective.
+
+For a pair of optimal primal-dual solutions, the two values become equal:
+\[
+L_D(\boldsymbol{\alpha}^*) = L_P(\mathbf{w}^*, b^*)
+\]
+
+The difference:
+\[
+L_P(\mathbf{w}, b) - L_D(\boldsymbol{\alpha}) \geq 0
+\]
+is called duality gap, and is 0 for optimal solutions.
+
+A solution $\mathbf{w}, b, \boldsymbol{\alpha}$ will be optimal if and only if it satisfies the KKT conditions:
+\[
+\nabla_\mathbf{w} L(\mathbf{w}, b, \boldsymbol{\alpha}) = \mathbf{w} - \sum_{i=1}^n \alpha_i z_i \mathbf{x}_i = \mathbf{0}
+\]
+\[
+\frac{\partial L(\mathbf{w}, b, \boldsymbol{\alpha})}{\partial b} = -\sum_{i=1}^n \alpha_i z_i = 0
+\]
+\[
+z_i\left(\mathbf{w}^T \mathbf{x}_i + b\right) - 1 \geq 0 \quad \forall i
+\]
+\[
+\alpha_i \geq 0 \quad \forall i
+\]
+\[
+\alpha_i \left[ z_i \left( \mathbf{w}^T \mathbf{x}_i + b \right) - 1 \right] = 0 \quad \forall i
+\]
+
+The first and second equations encode that, at the optimal primal solution $(\mathbf{w}, b)$, the
+gradient of the Lagrangian with respect to $\mathbf{w}$ and $b$ becomes zero.
+
+The next two equations encode that both the primal solution $(\mathbf{w}, b)$ and the corresponding
+dual solution $\boldsymbol{\alpha}$ are feasible.
+
+The last equation encodes that the optimal dual solution maximizes the Lagrangian. This
+requires that either the maximum is on the constraint, ie $\alpha_i = 0$, or the derivative of the
+Lagrangian is $\frac{\partial L}{\partial \alpha_i} = 0$. In compact form, $\alpha_i \frac{\partial L}{\partial \alpha_i} = 0$.
+
+The optimal solution satisfies the KKT conditions. For all points that do not lie on the
+margin, ie $z_i(\mathbf{w}^T \mathbf{x}_i + b) > 1$, the corresponding Lagrangian multiplier is $\alpha_i = 0$.
+$\alpha_i \neq 0$ implies that the corresponding point is on the margin, ie it is a Support Vector.
+
+After we have obtained $\boldsymbol{\alpha}$, the KKT conditions allow us to estimate $b$.
+
+Since $\mathbf{w} = \sum_{i=1}^n \alpha_i z_i \mathbf{x}_i$, the score for a test point $\mathbf{x}_t$ can be computed as:
+\[
+s(\mathbf{x}_t) = \mathbf{w}^T \mathbf{x}_t + b = \sum_{i=1}^n \alpha_i z_i \mathbf{x}_i^T \mathbf{x}_t + b
+\]
+
+Note that this depends only on dot products $\mathbf{x}_i^T \mathbf{x}_t$.
+
+The training points that are not Support Vector do not affect the separation surface.
+
+Let's consider a problem where classes are not linearly separable.
+
+No matter the value of $\mathbf{w}$, some points will violate the constraints $z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1$.
+
+We can try to minimize the number of points that violate the constraint. To do this, we
+introduce the slack variables $\xi_i \geq 0$, which represent how much a point is violating the
+constraint.
+
+We can replace the constraints $z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1$ with:
+\[
+z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1 - \xi_i, \quad \xi_i \geq 0
+\]
+ie we allow training points to be inside the margin by a factor $\xi_i$.
+
+We want to minimize the number of data points that lie inside the margin. We can consider
+the functional:
+\[
+\Phi(\boldsymbol{\xi}) = \sum_{i=1}^n \xi_i^\sigma \quad \text{with } \sigma > 0
+\]
+
+For sufficiently small values of $\sigma$, $\Phi(\boldsymbol{\xi})$ represents the number of points inside the
+margin. If we remove these data points, the classes become linearly separable and we can
+thus train a maximum margin hyperplane over the remaining points.
+
+Formally, this corresponds to the minimization of the functional:
+\[
+\frac{1}{2}\|\mathbf{w}\|^2 + CF\left(\sum_{i=1}^n \xi_i^\sigma\right)
+\]
+\[
+\text{s.t.} \quad z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1 - \xi_i \quad \forall i \qquad \xi_i \geq 0 \quad \forall i
+\]
+where $F$ is a monotone convex function and $C$ is a constant.
+
+For sufficiently large $C$ and small $\sigma$, the optimal solution minimizes the number of points
+that violate the margin constraints and maximizes the margin between the remaining
+points. Unfortunately, for small values of $\sigma$, the problem is difficult. We simplify the
+problem by considering $\sigma = 1$, which guarantees a unique solution for the separation
+surface, and $F(u) = u$.
+
+The objective function becomes:
+\[
+\min_{\mathbf{w},b,\boldsymbol{\xi}} \frac{1}{2}\|\mathbf{w}\|^2 + C\sum_{i=1}^n \xi_i
+\]
+\[
+\text{s.t.} \quad z_i(\mathbf{w}^T \mathbf{x}_i + b) \geq 1 - \xi_i \quad \forall i = 1\ldots n \qquad \xi_i \geq 0 \quad \forall i = 1\ldots n
+\]
+
+This is again a convex quadratic programming problem.
+
+The terms $\xi_i$ do not describe the number of errors, but act as a penalty. Points inside the
+margin have $\xi_i > 0$, and mis-classified points have $\xi_i > 1$. The further the point is
+from the hyperplane, the larger the value of $\xi_i$. $\sum_{i=1}^n \xi_i$ is an upper bound on the number
+of miss-classified points, ie errors. $C$ allows selecting a trade-off between margin and
+errors on the training set. The solution is often called a soft margin hyperplane.
+
+We can introduce again the Lagrangian problem:
+\[
+L(\mathbf{w}, b, \boldsymbol{\xi}, \boldsymbol{\alpha}, \boldsymbol{\mu}) = \frac{1}{2}\|\mathbf{w}\|^2 + C\sum_{i=1}^n \xi_i - \sum_{i=1}^n \alpha_i \left[ z_i\left(\mathbf{w}^T \mathbf{x}_i + b\right) - 1 + \xi_i \right] - \sum_{i=1}^n \mu_i \xi_i
+\]
+where $\alpha_i \geq 0$, and $\mu_i \geq 0$ are an additional set of Lagrange multipliers relative to the
+constraints $\xi_i \geq 0$.
+
+The KKT conditions are:
+\[
+\nabla_\mathbf{w} L(\mathbf{w}, b, \boldsymbol{\alpha}, \boldsymbol{\mu}) = \mathbf{w} - \sum_{i=1}^n \alpha_i z_i \mathbf{x}_i = \mathbf{0}
+\]
+\[
+\frac{\partial L(\mathbf{w}, b, \boldsymbol{\alpha}, \boldsymbol{\mu})}{\partial b} = -\sum_{i=1}^n \alpha_i z_i = 0
+\]
+\[
+\frac{\partial L(\mathbf{w}, b, \boldsymbol{\alpha}, \boldsymbol{\mu})}{\partial \xi_i} = C - \alpha_i - \mu_i = 0 \quad \forall i
+\]
+\[
+z_i(\mathbf{w}^T \mathbf{x}_i + b) - 1 + \xi_i \geq 0 \quad \forall i \qquad \xi_i \geq 0 \quad \forall i \qquad \alpha_i \geq 0 \quad \forall i \qquad \mu_i \geq 0 \quad \forall i
+\]
+\[
+\alpha_i \left[ z_i\left(\mathbf{w}^T \mathbf{x}_i + b\right) - 1 + \xi_i \right] = 0 \quad \forall i \qquad \mu_i \xi_i = 0 \quad \forall i
+\]
+
+We can then optimize the Lagrangian with respect to $\mathbf{w}, b, \boldsymbol{\xi}$ to obtain the dual
+problem:
+\[
+\max_{\boldsymbol{\alpha}} L_D(\boldsymbol{\alpha}) = \sum_{i=1}^n \alpha_i - \frac{1}{2}\sum_{i=1}^n\sum_{j=1}^n \alpha_i \alpha_j z_i z_j \mathbf{x}_i^T \mathbf{x}_j
+\]
+\[
+\text{s.t.} \quad 0 \leq \alpha_i \leq C,\ i = 1,\ldots,n \qquad \sum_{i=1}^n \alpha_i z_i = 0
+\]
+
+Predictions are again computed as in the hard-margin case:
+\[
+s(\mathbf{x}_t) = \mathbf{w}^T \mathbf{x}_t + b = \sum_{i=1}^n \alpha_i z_i \mathbf{x}_i^T \mathbf{x}_t + b
+\]
+
+Again, this depends only on dot products $\mathbf{x}_i^T \mathbf{x}_t$.
+
+There are several methods to solve the dual problem. If we are interested in linear
+separation we can directly solve the primal SVM problem. Let's recall the primal
+formulation:
+
+For data points that are on the correct side of the margin:
+\[
+\xi_i = 0
+\]
+while for the others we have:
+\[
+\xi_i = 1 - z_i(\mathbf{w}^T \mathbf{x}_i + b)
+\]
+
+Thus, the SVM primal problem can be rewritten as:
+\[
+\min_{\mathbf{w},b} \frac{1}{2}\|\mathbf{w}\|^2 + C\sum_{i=1}^n \max\left[0, 1 - z_i(\mathbf{w}^T \mathbf{x}_i + b)\right]
+\]
+where the constraints have been absorbed by the loss terms:
+\[
+\max\left[0, 1 - z_i(\mathbf{w}^T \mathbf{x}_i + b)\right]
+\]
+
+The function:
+\[
+f(s) = \max(0, 1-s)
+\]
+is known as hinge loss.
+
+Let's rewrite the objective function and let's compare with Logistic Regression:
+\[
+\min_{\mathbf{w},b} \frac{\lambda}{2}\|\mathbf{w}\|^2 + \frac{1}{n}\sum_{i=1}^n \max\left[0, 1 - z_i(\mathbf{w}^T \mathbf{x}_i + b)\right]
+\]
+\[
+\min_{\mathbf{w},b} \frac{\lambda}{2}\|\mathbf{w}\|^2 + \frac{1}{n}\sum_i \log\left[1 + e^{-z_i(\mathbf{w}^T \mathbf{x}_i + b)}\right]
+\]
+
+We have seen that we can obtain the separation hyperplane by solving either the primal or
+the dual problem.
+
+For the primal, we minimize with respect to $\mathbf{w}$ and $b$:
+\[
+L_P(\mathbf{w}, b) = \frac{1}{2}\|\mathbf{w}\|^2 + C\sum_{i=1}^n \left[1 - z_i(\mathbf{w}^T \mathbf{x}_i + b)\right]_+
+\]
+
+For the dual, we maximize with respect to $\boldsymbol{\alpha}$:
+\[
+L_D(\boldsymbol{\alpha}) = \boldsymbol{\alpha}^T \mathbf{1} - \frac{1}{2}\boldsymbol{\alpha}^T \mathbf{H} \boldsymbol{\alpha}
+\]
+\[
+\text{s.t.} \quad 0 \leq \alpha_i \leq C,\ i = 1,\ldots,n \qquad \sum_{i=1}^n \alpha_i z_i = 0
+\]
+
+For a pair of feasible solutions $L_P(\mathbf{w},b) - L_D(\boldsymbol{\alpha})$ is the duality gap. At the optimum, the
+gap becomes 0, ie $L_P(\mathbf{w}^*, b^*) = L_D(\boldsymbol{\alpha}^*)$.
+
+For the primal, parameters $\mathbf{w} \in \mathbb{R}^D,\ b \in \mathbb{R}$, the scoring complexity is $O(D)$:
+\[
+s(\mathbf{x}_t) = \mathbf{w}^T \mathbf{x}_t + b
+\]
+and embedding a non-linear transformation requires explicitly defining the mapping from
+$\mathbb{R}^D$ to the Hilbert space $\mathcal{H}$:
+\[
+\boldsymbol{\Phi} : \mathbb{R}^D \longrightarrow \mathcal{H}
+\]
+
+For the dual, parameters $\boldsymbol{\alpha} \in \mathbb{R}^N$, the scoring complexity is $O(SV)$:
+\[
+s(\mathbf{x}_t) = \sum_{i=1}^N \alpha_i z_i \mathbf{x}_i^T \mathbf{x}_t + b = \sum_{i|\alpha_i > 0} \alpha_i z_i \mathbf{x}_i^T \mathbf{x}_t + b
+\]
+and embedding a non-linear transformation only requires dot-products in the expanded
+space $\boldsymbol{\Phi}(\mathbf{x}_i)^T \boldsymbol{\Phi}(\mathbf{x}_j)$.
+
+If we have a function that efficiently computes the dot-products in the expanded space:
+\[
+k(\mathbf{x}_1, \mathbf{x}_2) = \boldsymbol{\Phi}(\mathbf{x}_1)^T \boldsymbol{\Phi}(\mathbf{x}_2)
+\]
+then both training and scoring can be performed by using only $k$.
+
+Remember that, for mapping $\boldsymbol{\Phi}$, matrix $\mathbf{H}$ is given:
+\[
+H_{ij} = z_i z_j \boldsymbol{\Phi}(x_i)^T \boldsymbol{\Phi}(\mathbf{x}_j)
+\]
+and the scoring becomes:
+\[
+s(\mathbf{x}_t) = \sum_{i=1|\alpha_i>0} \alpha_i z_i \boldsymbol{\Phi}(\mathbf{x}_i)^T \boldsymbol{\Phi}(\mathbf{x}_t) + b = \sum_{i=1|\alpha_i>0} \alpha_i z_i k(\mathbf{x}_i, \mathbf{x}_t) + b
+\]
+
+Function $k$ is called kernel function. A kernel function allows training a SVM in a large,
+even infinite, dimensional Hilbert space $\mathcal{H}$, without requiring to explicitly compute the
+mapping. Even if the expansion was finite, the complexity of the primal problem may be
+too large. On the other hand, the complexity of the dual problem only depends on the
+number of training points. In practice, we are computing a linear separation surface in the
+expanded space, which corresponds to a non-linear separation surface in the original
+feature space.
+
+An example of feature expansion that provides quadratic separation surfaces is given by
+the mapping:
+\[
+\boldsymbol{\Phi}(\mathbf{x}) = \begin{bmatrix} \text{vec}(\mathbf{x}\mathbf{x}^T) \\ \sqrt{2}\mathbf{x} \\ 1 \end{bmatrix}
+\]
+
+The notation $\text{vec}(\mathbf{x}\mathbf{x}^T)$ means you take the outer product $(\mathbf{x}\mathbf{x}^T)$ (which is a matrix), and then
+flatten it into a vector by stacking its columns (or rows) one after the other.
+
+For example, if $\mathbf{x}$ is a 2-dimensional vector, $\mathbf{x}\mathbf{x}^T$ is a $2\times2$ matrix, and $\text{vec}(\mathbf{x}\mathbf{x}^T)$ is a
+4-dimensional vector.
+
+We can compute:
+\[
+\boldsymbol{\Phi}(\mathbf{x}_1)^T \boldsymbol{\Phi}(\mathbf{x}_2) = \left(\mathbf{x}_1^T \mathbf{x}_2\right)^2 + 2\mathbf{x}_1^T \mathbf{x}_2 + 1
+\]
+
+It is easy verifying that the corresponding kernel is:
+\[
+k(\mathbf{x}_1, \mathbf{x}_2) = \left(\mathbf{x}_1^T \mathbf{x}_2 + 1\right)^2
+\]
+
+In general, we can define the polynomial kernels of degree $d$ as:
+\[
+k(\mathbf{x}_1, \mathbf{x}_2) = \left(\mathbf{x}_1^T \mathbf{x}_2 + 1\right)^d
+\]
+
+If we know $\boldsymbol{\Phi}$, we can trivially define a corresponding kernel function $k(\mathbf{x}_1, \mathbf{x}_2) = \boldsymbol{\Phi}(\mathbf{x}_1)^T \boldsymbol{\Phi}(\mathbf{x}_2)$.
+However, we typically want to avoid defining explicit mappings. We would rather like to
+know which functions $k(\mathbf{x}_1, \mathbf{x}_2)$ correspond to a feature mapping $\boldsymbol{\Phi}$ in a suitable space
+$\mathcal{H}$.
+
+Mercer's condition provides a sufficient condition for $k$ to define a dot-product in an
+expanded space.
+
+Let $k(\mathbf{u}, \mathbf{v})$ be a symmetrical function in the space of all functions where the integral of the
+square of the function is finite. If for all functions $g(\mathbf{u})$ such that:
+\[
+\int g(\mathbf{u})^2 \, d\mathbf{u} < \infty
+\]
+we have that:
+\[
+\int k(\mathbf{u}, \mathbf{v}) g(\mathbf{u}) g(\mathbf{v}) \, d\mathbf{u} \, d\mathbf{v} > 0
+\]
+then $k$ defines a dot-product in some expanded space. This condition does not tell us how
+to construct suitable kernels. In general, we can make use of well known kernels, or use
+rules to combine kernel functions that guarantee that the combination is still a kernel (eg
+summing kernel functions).
+
+Another example of kernel function associated to an infinite-dimensional mapping is:
+\[
+k(\mathbf{x}_1, \mathbf{x}_2) = e^{-\gamma\|\mathbf{x}_1 - \mathbf{x}_2\|^2}
+\]
+where the kernel depends on the distance of the points. Similar points, ie closer points,
+have higher kernel value. $\gamma$ defines the width of the kernel. If $\gamma$ is small, then the kernel
+is wide, a Support Vector influences most other points. If $\gamma$ is large, then the kernel is
+narrow, a Support Vector has a very small influence on points that are not close.
+
+Practical considerations:
+\begin{itemize}
+    \item We need to take care in selecting the appropriate kernel
+    \item Kernels often include hyper-parameters. Cross-validation can help selection of good values
+    \item We need to select good values of the coefficient $C$. Cross-validation can help.
+    \item In some cases, linear classifiers are sufficient. Our feature set is of sufficient high dimension to make our classes almost linearly separable.
+    \item SVM training is not invariant under affine transformations. Often it is useful to center and whiten the data.
+    \item SVM scores have no probabilistic interpretation. Score post-processing can be applied to estimate class posterior probabilities.
+    \item Finally, we have to take care when training with highly unbalanced datasets, or, more precisely, when the empirical training set prior is significantly different from the target application prior. In this case, weighting the costs of different errors may be beneficial, but we still don't have a probabilistic interpretation for the score.
+\end{itemize}
+
+If a method is not invariant under a certain transformation, it means that applying that
+transformation to the data can change the outcome of the method. For example, SVM training is not
+invariant under affine transformations, so operations like scaling, translating, or rotating the data
+can affect the resulting classifier. This lack of invariance means that the performance and behavior
+of the model may depend on how the data are represented, making it important to carefully
+preprocess or normalize the data before training.
+
+To re-balance the classes we can use a different value of $C$ for the different classes or
+even for different samples:
+\[
+\arg\min_{\mathbf{w},b} \frac{1}{2}\|\mathbf{w}\|^2 + \sum_{i=1}^n C_i \left[1 - z_i(\mathbf{w}^T \mathbf{x}_i + b)\right]_+
+\]
+
+The corresponding dual problem is:
+\[
+\arg\max_{\boldsymbol{\alpha}}\ \boldsymbol{\alpha}^T \mathbf{1} - \frac{1}{2}\boldsymbol{\alpha}^T \mathbf{H} \boldsymbol{\alpha}
+\]
+\[
+\text{s.t.} \quad \sum_{i=1}^n \alpha_i z_i = 0,\quad 0 \leq \alpha_i \leq C_i,\ i = 1,\ldots,n
+\]
+
+For class balancing, we can set $C_i = C_T$ for samples of class $\mathcal{H}_T$ and $C_i = C_F$ for
+samples of class $\mathcal{H}_F$.
+
+We can select:
+\[
+C_T = C\frac{\pi_T}{\pi_T^{emp}} \qquad \text{and} \qquad C_F = C\frac{\pi_F}{\pi_F^{emp}}
+\]
+
+$\pi_T^{emp}$ and $\pi_F^{emp}$ are the empirical priors (ie sample proportions) for the two classes computed
+over the training set.
+
+In practice, we are simulating the application class proportions at training time.
+
+SVMs provide good performance for binary classification problems. It's difficult to extend to
+multiclass problems.
+
+Kernel methods are not restricted to SVMs. Logistic Regression can be extended to
+incorporate kernels. In general, we can apply the kernel tricks to problems which depend
+only on dot-products.
+
