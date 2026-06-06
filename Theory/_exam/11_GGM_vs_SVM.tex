@@ -1,0 +1,40 @@
+The \textbf{Generative Gaussian Models} (MVG) and the \textbf{Support Vector Machine} (SVM) sit at opposite ends of the classifier spectrum: a \textbf{generative, probabilistic} model versus a \textbf{discriminative, geometric, non-probabilistic} one. They can produce the \emph{same} decision boundaries, but obtain and interpret them in completely different ways.
+
+\section*{Same Boundaries, Opposite Constructions}
+
+The \textbf{Tied} MVG has a \textbf{linear} log-posterior-ratio $s=\mathbf{w}^T\mathbf{x}+b$ with $\mathbf{w}\propto\boldsymbol\Sigma^{-1}(\boldsymbol\mu_1-\boldsymbol\mu_0)$, the same \emph{form} as the linear SVM; the \textbf{full} MVG (QDA) gives a \textbf{quadratic} boundary, matched by an SVM with a degree-2 \textbf{polynomial kernel}. So the two can span the same family of surfaces. The difference is \emph{how}: MVG models the class-conditional densities $f(\mathbf{x}\,|\,c)P(c)$ and gets the boundary through \textbf{Bayes}, estimating $\mathbf{w}$ from \textbf{ML Gaussian statistics}; SVM never models a density and obtains the boundary by \textbf{maximizing the margin}.
+
+\section*{Probabilities, Training and What the Data Are Used For}
+
+MVG produces a \textbf{log-likelihood ratio} / posterior, \textbf{Bayes-ready}: the decision rule is $\mathrm{llr}\gtrless-\log\frac{P(c_1)}{P(c_0)}$ and priors/costs can be changed at deployment by moving the threshold. The SVM score has \textbf{no probabilistic interpretation}: it needs \textbf{calibration} and has no native Bayes threshold; imbalance is handled through class-dependent costs $C_T,C_F$. \textbf{Training} also diverges: MVG is \textbf{closed-form} (per-class means and covariances), SVM is a \textbf{convex QP} (dual + KKT, no closed form). Finally, MVG uses \textbf{aggregate statistics of all points}, whereas the SVM solution depends \textbf{only on the support vectors} and on \textbf{dot products}, hence is kernelizable.
+
+\section*{Assumptions, Non-linearity and Multiclass}
+
+MVG makes a \textbf{strong Gaussian assumption} on the class-conditionals (data-efficient when it holds, requiring $\boldsymbol\Sigma$ invertible, $N>D$, often PCA first); SVM makes \textbf{no density assumption} and is more robust to non-Gaussian features. For \textbf{non-linear} boundaries MVG uses a full covariance (quadratic, with $\tfrac{D(D+1)}2$ parameters per class), while SVM uses the \textbf{kernel trick} (even infinite-dimensional, without building $\boldsymbol\Phi$). MVG is \textbf{natively multiclass} (the $\arg\max$ of the log-posterior over $K$ classes), whereas SVM is binary by nature and \textbf{hard to extend}.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspect} & \textbf{Generative Gaussian (MVG / Tied)} & \textbf{Support Vector Machine} \\
+\hline
+Type & Generative: $f(\mathbf{x}\,|\,c)P(c)$, then Bayes & Discriminative, non-probabilistic \\
+\hline
+Objective & ML of Gaussian class-conditionals & max margin / hinge $+\tfrac12\|\mathbf{w}\|^2$ \\
+\hline
+Assumptions & Gaussian class-conditionals; $\boldsymbol\Sigma$ invertible & none on the feature density \\
+\hline
+Training & closed form, per class & convex QP (dual, KKT) \\
+\hline
+Score & LLR $\log\tfrac{f(\mathbf{x}|c_1)}{f(\mathbf{x}|c_0)}$; posterior via Bayes & $\sum_{\mathrm{SV}}\alpha_iz_ik(\mathbf{x}_i,\mathbf{x})+b$; no posterior \\
+\hline
+Decision rule & $\mathrm{llr}\gtrless-\log\tfrac{P(c_1)}{P(c_0)}$; quadratic (linear if tied) & $s\gtrless0$; linear or kernel-nonlinear \\
+\hline
+Priors & separated $\Rightarrow$ threshold/costs native & no native prior; costs $C_T,C_F$ \\
+\hline
+Multiclass & native ($\arg\max$ log-posterior) & hard (binary by nature) \\
+\hline
+\end{tabular}
+}%
+\end{center}

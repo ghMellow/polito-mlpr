@@ -1,0 +1,42 @@
+\textbf{LDA} (binary) and \textbf{Logistic Regression} (LR) both produce a \textbf{linear} binary classifier --- a decision based on $s=\mathbf{w}^T\mathbf{x}+b$ with a boundary that is a hyperplane orthogonal to $\mathbf{w}$ --- but they choose the separating rule from \textbf{different criteria}: LDA from a geometric objective, LR from a discriminative (probabilistic) one.
+
+\section*{Objective and Training}
+
+\textbf{LDA} maximizes the \textbf{Fisher ratio}, the ratio of between- to within-class scatter,
+\[
+\max_{\mathbf{w}}\;\frac{\mathbf{w}^T S_B\mathbf{w}}{\mathbf{w}^T S_W\mathbf{w}},\qquad \mathbf{w}\propto S_W^{-1}(\boldsymbol{\mu}_2-\boldsymbol{\mu}_1),
+\]
+a purely \textbf{geometric} criterion solved in \textbf{closed form} (a generalized eigenproblem). \textbf{LR} instead minimizes the \textbf{cross-entropy / empirical risk}
+\[
+J(\mathbf{w},b)=\sum_i\log\!\big(1+e^{-z_i(\mathbf{w}^T\mathbf{x}_i+b)}\big),
+\]
+a \textbf{discriminative} criterion with \textbf{no closed form}, solved numerically. Both live in the same hypothesis class (linear log-odds, which a common-covariance Gaussian implies); they only disagree on which hyperplane to select.
+
+\section*{Assumptions, Thresholds and Extensions}
+
+\textbf{Assumptions.} LDA assumes \textbf{Gaussian classes with a common covariance}; LR assumes only a \textbf{linear log-odds} with no model of the feature density, making it more robust when the Gaussian assumption fails. \textbf{Threshold/priors.} LDA classifies against the \textbf{midpoint} threshold $t=\frac{m_1+m_2}{2}$ (optimal under equal priors); LR's score reflects the \textbf{empirical training prior} and can be recalibrated to a log-likelihood ratio for arbitrary applications. \textbf{Non-linearity.} LR extends to non-linear boundaries via a feature expansion $\phi(\mathbf{x})$; LDA, being geometric/eigen-based, does not extend naturally. \textbf{Dual role / multiclass.} LDA is also a \textbf{dimensionality-reduction} technique --- at most $K-1$ discriminant directions, then a downstream classifier --- whereas LR is purely a classifier and handles multiclass directly via \textbf{softmax}.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspect} & \textbf{Logistic Regression} & \textbf{LDA (binary)} \\
+\hline
+Objective & Min cross-entropy / empirical risk (discriminative) & Max Fisher ratio (geometric) \\
+\hline
+Training & Numerical, no closed form & Closed form (eigenproblem / $S_W^{-1}\Delta\boldsymbol{\mu}$) \\
+\hline
+Assumptions & Linear log-odds; no model of $f_X$ & Gaussian classes, common covariance \\
+\hline
+Decision rule & $s\gtrless 0$ (recalibratable to LLR) & $\mathbf{w}^T\mathbf{x}\lessgtr t=\tfrac{m_1+m_2}{2}$ (midpoint) \\
+\hline
+Dual use & Classifier only & Also dimensionality reduction ($\le K-1$ dir.) \\
+\hline
+Non-linearity & Yes, via $\phi(\mathbf{x})$ & No (geometric) \\
+\hline
+Multiclass & Softmax (direct) & Dim. reduction $\le K-1$ + downstream classifier \\
+\hline
+\end{tabular}
+}%
+\end{center}

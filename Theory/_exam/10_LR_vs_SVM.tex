@@ -1,0 +1,45 @@
+\textbf{Logistic Regression} (LR) and the \textbf{Support Vector Machine} (SVM) are the two prototypical \textbf{discriminative, linear} classifiers cast as \textbf{regularized risk minimization}. They learn the same kind of score $s=\mathbf{w}^T\mathbf{x}+b$ and classify by its sign; they differ essentially in \emph{one ingredient} --- the per-sample loss --- and in whether the output is probabilistic.
+
+\section*{The Shared Risk-Minimization Form}
+
+Both minimize an objective of the form $\frac{\lambda}{2}\|\mathbf{w}\|^2+\frac1n\sum_i\ell(z_is_i)$, with $z_i\in\{\pm1\}$ and $s_i=\mathbf{w}^T\mathbf{x}_i+b$, differing \textbf{only in the loss}:
+\[
+\text{LR:}\ \ \ell(z_is_i)=\log\!\big(1+e^{-z_is_i}\big),\qquad
+\text{SVM:}\ \ \ell(z_is_i)=\max\!\big(0,\,1-z_is_i\big)\ \text{(hinge)} .
+\]
+Neither models the feature density $f_X(\mathbf{x})$. The \textbf{regularization term} $\frac\lambda2\|\mathbf{w}\|^2$ plays the same role in both, but with complementary readings: in LR it is needed because on \textbf{separable} data the log-loss has no minimum (driving $\|\mathbf{w}\|\to\infty$); in SVM the \emph{same} term \textbf{is} the objective, and minimizing $\frac12\|\mathbf{w}\|^2$ subject to $z_is_i\ge1$ is exactly \textbf{maximizing the margin}. SVM is thus the \textbf{geometric interpretation} of LR's regularization.
+
+\section*{Loss Shape, Support Vectors and Probabilities}
+
+The hinge loss is \textbf{exactly zero} for points correctly classified beyond the margin: only the points on/inside the margin (the \textbf{support vectors}, $\alpha_i\ne0$) determine the solution, so SVM is \textbf{sparse} in the training set. The log-loss is \textbf{always positive}, so in LR \textbf{every} sample contributes. The other central difference is the \textbf{output}: LR returns a calibrated \textbf{posterior} $\sigma(s)$ with $s$ a log-posterior-ratio, whereas the SVM score has \textbf{no probabilistic meaning} and needs an explicit \textbf{calibration} step before it can be used as an LLR.
+
+\section*{Optimization, Non-linearity, Priors and Multiclass}
+
+LR is solved by \textbf{direct numerical minimization} of the primal (loss + gradient); SVM is a \textbf{convex QP}, usually solved through its \textbf{dual} (Lagrangian + KKT conditions), which both exposes the support vectors and enables kernels. \textbf{Non-linearity} is reached differently: LR uses an \textbf{explicit} feature expansion $\phi(\mathbf{x})$, SVM uses the \textbf{kernel trick} $k(\mathbf{x}_i,\mathbf{x}_j)$ (implicit, possibly infinite-dimensional) --- though kernels are not exclusive to SVM and LR can be kernelized too. On \textbf{priors}, neither score natively matches the application prior: LR is \textbf{recalibrated} ($s_{llr}=s-\log\frac{n_T}{n_F}$) or trained prior-weighted, while SVM rebalances through class-dependent costs $C_T,C_F$. Finally, LR extends to \textbf{multiclass} naturally via \textbf{softmax}, whereas SVM is natively binary and hard to extend.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspect} & \textbf{Logistic Regression} & \textbf{Support Vector Machine} \\
+\hline
+Objective & $\tfrac\lambda2\|\mathbf{w}\|^2+\tfrac1n\sum\log(1+e^{-z_is_i})$ & $\tfrac\lambda2\|\mathbf{w}\|^2+\tfrac1n\sum\max(0,1-z_is_i)$ \\
+\hline
+Loss (per sample) & log / softplus (always $>0$) & hinge (zero beyond the margin) \\
+\hline
+Training & ML / cross-entropy, numerical solver & convex QP, dual + KKT \\
+\hline
+Output / score & posterior $\sigma(s)$; $s$ is a log-odds & sign of $s$; \textbf{no} probabilistic meaning \\
+\hline
+Decision rule & $s\gtrless0$; Bayes threshold after recalibration & $s\gtrless0$; no native Bayes threshold \\
+\hline
+Non-linearity & explicit feature expansion $\phi(\mathbf{x})$ & implicit kernel $k$ (even $\infty$-dim) \\
+\hline
+Sparsity & no (all samples contribute) & yes (only support vectors) \\
+\hline
+Multiclass & natural (softmax) & hard (binary by nature) \\
+\hline
+\end{tabular}
+}%
+\end{center}

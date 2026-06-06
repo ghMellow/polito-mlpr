@@ -1,0 +1,72 @@
+\textbf{Motivation.} A \textbf{Gaussian Mixture Model (GMM)} is a density model obtained as a \textbf{weighted combination of Gaussians}. By combining several simple Gaussian components it can approximate \textbf{any sufficiently regular distribution} to a desired degree, provided enough data. GMMs are used for \textbf{density estimation}, \textbf{clustering} (a generalization of K-means), and as \textbf{generative classifiers} (one GMM per class). The starting observation is that, in a Gaussian classifier, the marginal density $f_X(x) = \sum_c \pi_c \mathcal{N}(x;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)$ is \textit{already} a GMM.
+
+\textbf{Mathematical formulation.} A $K$-component GMM is:
+
+$$f_X(x) = \sum_{c=1}^K w_c\,\mathcal{N}(x;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c), \qquad w_c \ge 0,\quad \sum_{c=1}^K w_c = 1$$
+
+The constraint $\sum_c w_c = 1$ follows from requiring $\int f_X(x)\,dx = 1$. The parameters are $\theta = (\mathcal{M},\mathcal{S},\mathbf{w})$ with $\mathcal{M}=\{\boldsymbol{\mu}_c\}$, $\mathcal{S}=\{\boldsymbol{\Sigma}_c\}$, $\mathbf{w}=\{w_c\}$.
+
+\textbf{Latent-variable interpretation.} A GMM is the \textbf{marginal} of a joint distribution over a sample $X_i$ and a hidden \textbf{cluster} variable $C_i$:
+
+$$f_{X_i}(x_i) = \sum_{c=1}^K f_{X_i|C_i}(x_i|c)\,P(C_i=c) = \sum_{c=1}^K w_c\,\mathcal{N}(x_i;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)$$
+
+with categorical prior $P(C_i=c)=w_c$ and conditional $f_{X_i|C_i}(x_i|c)=\mathcal{N}(x_i;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)$. The cluster membership is a \textbf{latent (hidden) variable}: it is not observed but governs the data-generation process.
+
+\textbf{Likelihood and ill-posed ML.} For an i.i.d. dataset $\mathcal{D}=\{x_1,\dots,x_N\}$ (treated as \textbf{unlabeled}), the log-likelihood is:
+
+$$\ell(\theta) = \sum_{i=1}^N \log \sum_{c=1}^K w_c\,\mathcal{N}(x_i;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)$$
+
+The \textbf{log of a sum} has no closed-form maximizer. Moreover, ML for GMMs is \textbf{ill-posed}: with at least two components the likelihood is \textbf{unbounded above} (a component can collapse onto a single point, $\boldsymbol{\Sigma}_c \to 0$), so degenerate solutions exist. Combined with heuristics, ML still yields good density estimates.
+
+\textbf{Responsibilities and hard assignment.} Given $\theta$, the \textbf{responsibility} (cluster posterior) of component $c$ for sample $x_i$ is:
+
+$$\gamma_{c,i} = P(C_i=c|X_i=x_i) = \frac{w_c\,\mathcal{N}(x_i;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)}{\sum_{c'} w_{c'}\,\mathcal{N}(x_i;\boldsymbol{\mu}_{c'},\boldsymbol{\Sigma}_{c'})}$$
+
+A first, crude approach assigns each point to $\hat{c}_i = \arg\max_c \gamma_{c,i}$ (\textbf{hard clustering}) and re-estimates parameters by ML as if labels were known. This ignores uncertainty when clusters overlap and does \textbf{not} maximize the observed-data likelihood.
+
+\textbf{K-means as a special case.} If we fix $\boldsymbol{\Sigma}_c = I$ and $w_c = 1/K$, hard assignment reduces to:
+
+$$\hat{c}_i = \arg\max_c P(C_i=c|x_i) = \arg\min_c \|x_i - \boldsymbol{\mu}_c\|^2$$
+
+i.e. assign each point to the nearest centroid and re-estimate centroids — the \textbf{K-means} algorithm. K-means is therefore a special case of (hard-assignment, isotropic) GMM training.
+
+\textbf{Training via EM.} Soft assignments are handled by the \textbf{Expectation-Maximization (EM)} algorithm, the general method for ML estimation when the likelihood is a marginal $f_X(x)=\int f_{X,H}(x,h)\,dh$ over a latent variable $H$. Introducing a distribution $Q(h)$, the log-likelihood decomposes as:
+
+$$\log f_X(x;\theta) = \mathcal{L}_h(Q,\theta) + D_{KL}\big(Q\,\|\,f_{H|X}(h|x;\theta)\big), \qquad D_{KL} \ge 0$$
+
+so $\mathcal{L}_h$ is a \textbf{lower bound (ELBO)} on the log-likelihood. EM iterates:
+
+\begin{itemize}
+\item \textbf{E-step:} maximize the bound w.r.t. $Q$ by setting $Q^t(h)=f_{H|X}(h|x;\theta^t)$, which makes $D_{KL}=0$ (the bound becomes tight). It computes the \textbf{auxiliary function} $\mathcal{Q}(\theta,\theta^t)=\mathbb{E}_{f_{H|X}(h|x;\theta^t)}[\log f_{X,H}(x,h;\theta)]$.
+\item \textbf{M-step:} maximize the bound w.r.t. $\theta$: $\theta^{t+1}=\arg\max_\theta \mathcal{Q}(\theta,\theta^t)$.
+\end{itemize}
+
+Because the E-step makes the bound tight and the M-step never decreases it, the likelihood is \textbf{monotonically non-decreasing}: $\log f_X(x;\theta^{t+1}) \ge \log f_X(x;\theta^t)$. EM converges to a \textbf{stationary point} (local maximum / saddle) that depends on the initialization.
+
+\textbf{EM for GMM.} The latent variables are the cluster assignments $h=\{C_1,\dots,C_N\}$, with joint $f_{X_i,C_i}(x_i,c)=w_c\,\mathcal{N}(x_i;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)$. The two steps become:
+
+\begin{itemize}
+\item \textbf{E-step:} compute $\gamma_{c,i}=P(C_i=c|x_i;\theta^t)$. The auxiliary function is
+$$\mathcal{Q}(\theta,\theta^t)=\sum_{i=1}^N\sum_{c=1}^K \gamma_{c,i}\big[\log\mathcal{N}(x_i;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)+\log w_c\big]$$
+\item \textbf{M-step:} maximize w.r.t. $\theta$ subject to $\sum_c w_c = 1$:
+$$\boldsymbol{\mu}_c^* = \frac{\sum_i \gamma_{c,i}x_i}{\sum_i \gamma_{c,i}}, \quad \boldsymbol{\Sigma}_c^* = \frac{\sum_i \gamma_{c,i}(x_i-\boldsymbol{\mu}_c^*)(x_i-\boldsymbol{\mu}_c^*)^T}{\sum_i \gamma_{c,i}}, \quad w_c^* = \frac{\sum_i \gamma_{c,i}}{\sum_{i,c'} \gamma_{c',i}}$$
+\end{itemize}
+
+These are the \textbf{soft} versions of the hard-assignment ML updates (membership weights $\gamma_{c,i}$ replace 0/1 labels). Defining the \textbf{zero, first and second order statistics} $N_c=\sum_i\gamma_{c,i}$, $F_c=\sum_i\gamma_{c,i}x_i$, $S_c=\sum_i\gamma_{c,i}x_ix_i^T$, the updates read $\boldsymbol{\mu}_c^*=F_c/N_c$, $\boldsymbol{\Sigma}_c^*=S_c/N_c-\boldsymbol{\mu}_c^*\boldsymbol{\mu}_c^{*T}$, $w_c^*=N_c/N$.
+
+\textbf{Inference: classification.} For a closed-set task we fit a GMM with $K_c$ components to each class and apply Bayes:
+
+$$f_{X_t|C_t}(x_t|c)=\sum_{k=1}^{K_c} w_{c,k}\,\mathcal{N}(x_t;\boldsymbol{\mu}_{c,k},\boldsymbol{\Sigma}_{c,k}), \qquad P(C_t=c|x_t)\propto P(C_t=c)\,f_{X_t|C_t}(x_t|c)$$
+
+The decision rule is the usual generative one — binary log-likelihood ratio against a threshold from the log-odds, or $\arg\max_c[\log f_{X|C}(x_t|c)+\log P(C=c)]$ for multiclass — but the class-conditional density is now a \textbf{mixture}, so the decision boundary can be an \textbf{arbitrary non-linear} surface whose flexibility grows with $K_c$ (a single-component GMM recovers the MVG/quadratic boundary).
+
+\textbf{Open-set classification.} GMMs help model the heterogeneous \textbf{``none-of-the-others''} class: known classes may stay MVG, while a GMM trained on a large pool of unlabeled samples discovers homogeneous sub-clusters of the rejection class. Because different numbers of parameters are used, the resulting class-conditional likelihoods are often \textbf{not calibrated} and may need further score processing.
+
+\textbf{Variants.}
+\begin{itemize}
+\item \textbf{Diagonal covariance:} fewer parameters (less overfitting/cost), possibly needing more components. This is \textbf{not} the Naive Bayes assumption: Naive Bayes would train a separate GMM for each independent subset of features.
+\item \textbf{Tied GMM:} all components of a single class's GMM share one $\boldsymbol{\Sigma}$. This differs from the \textbf{Tied MVG}, where the covariance is shared \textit{across classes}.
+\item \textbf{Initialization} is crucial (EM finds only local optima). \textbf{K-means} can initialize the components; the \textbf{LBG} algorithm splits each component $\boldsymbol{\mu}_c^{\pm}=\boldsymbol{\mu}_c\pm\boldsymbol{\varepsilon}$ (a good $\boldsymbol{\varepsilon}$ is a displacement along the principal eigenvector of $\boldsymbol{\Sigma}_c$) to grow a $G$-component GMM into $2G$ components, running EM after each split.
+\end{itemize}
+
+\textbf{Limitations.} The likelihood is \textbf{unbounded} with $\ge 2$ components, so EM can reach \textbf{degenerate models} ($\boldsymbol{\Sigma}_c \to 0$) causing numerical problems — controlled with heuristics or constrained covariances. EM only reaches \textbf{local optima}, hence sensitivity to initialization and the use of multiple restarts. The \textbf{number of components} cannot be chosen by maximizing the likelihood (which always grows with $K$); \textbf{cross-validation} is used instead. Finally, reliable density estimation requires a sufficient amount of data.

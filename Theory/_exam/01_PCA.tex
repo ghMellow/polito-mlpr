@@ -1,6 +1,6 @@
 \textbf{Motivation.} Dimensionality reduction maps data from an $n$-dimensional space to an $m$-dimensional one, with $m \ll n$. The practical purposes are fourfold: \textbf{to compress information, remove unwanted variability (noise), simplify classification by reducing the number of parameters to estimate, and visualize the data.}
 
-\textbf{PCA is the standard linear and unsupervised technique for this task.} The matrix $P \in \mathbb{R}^{n \times m}$ with orthonormal columns minimizes the average reconstruction error:
+\textbf{PCA is the standard linear and unsupervised technique for this task.} A sample is projected to the low-dimensional space as $\mathbf{y} = P^T\mathbf{x}$ and reconstructed in the original space as $\hat{\mathbf{x}} = P\mathbf{y} = PP^T\mathbf{x}$. The matrix $P \in \mathbb{R}^{n \times m}$ with orthonormal columns minimizes the average reconstruction error:
 
 $$P^* = \arg\min_P \frac{1}{K}\sum_i \|\mathbf{x}_i - PP^T\mathbf{x}_i\|^2 \quad \text{s.t. } P^TP = I$$
 

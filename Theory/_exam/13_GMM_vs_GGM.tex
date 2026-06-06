@@ -1,0 +1,40 @@
+The \textbf{Generative Gaussian Models} (MVG) and \textbf{Gaussian Mixture Models} (GMM) belong to the \emph{same} family — both are \textbf{generative, probabilistic} models of the class-conditional density $f_{X|C}(x|c)$ used through \textbf{Bayes} — and in fact the MVG is a \textbf{special case} of the GMM. They differ in flexibility, in how the parameters are estimated, and in whether the data are labelled.
+
+\section*{One is a Special Case of the Other}
+
+A single multivariate Gaussian is exactly a \textbf{one-component GMM} ($K=1\Rightarrow w_1=1$, $f_X=\mathcal{N}(\boldsymbol{\mu},\boldsymbol{\Sigma})$); a GMM is a \textbf{mixture} of such Gaussians, $f_{X|C}(x|c)=\sum_k w_{c,k}\mathcal{N}(x;\boldsymbol{\mu}_{c,k},\boldsymbol{\Sigma}_{c,k})$. Conversely, the marginal $f_X(x)=\sum_c\pi_c\mathcal{N}(x;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)$ that an MVG \emph{classifier} forms over its classes is itself a GMM. The \textbf{inference and decision rule are identical}: binary log-likelihood ratio against a log-odds threshold, multiclass $\arg\max_c[\log f_{X|C}(x|c)+\log P(C=c)]$ — only the \emph{form} of $f_{X|C}$ changes. Because of this, the MVG produces a \textbf{linear} (tied) or \textbf{quadratic} (full/QDA) boundary, whereas the GMM produces an \textbf{arbitrary non-linear} boundary whose flexibility grows with the number of components $K_c$.
+
+\section*{Closed-form ML versus EM}
+
+The MVG has \textbf{no latent variable}: labels are observed, and the parameters follow in \textbf{closed form} (per-class sample mean and covariance), a single well-posed global optimum. The GMM treats \textbf{cluster membership as a latent variable} and is trained by the iterative \textbf{EM} algorithm — E-step responsibilities $\gamma_{c,i}$, M-step weighted updates — which only reaches a \textbf{local optimum} and is sensitive to initialization (K-means / LBG). The two estimators are directly related: the GMM M-step updates $\boldsymbol{\mu}_c^*=\tfrac{\sum_i\gamma_{c,i}x_i}{\sum_i\gamma_{c,i}}$, $\boldsymbol{\Sigma}_c^*$, $w_c^*$ are the \textbf{soft, responsibility-weighted} version of the MVG closed-form ML, and reduce to it when responsibilities are hard 0/1. Crucially, the GMM likelihood is \textbf{ill-posed} (unbounded with $\ge2$ components, degenerate $\boldsymbol{\Sigma}_c\to0$), whereas the MVG likelihood is bounded and well-behaved.
+
+\section*{Supervision, Variants and Model Selection}
+
+The MVG ML estimate is \textbf{supervised} (it needs labels); the core GMM derivation is \textbf{unsupervised} ($\mathcal{D}$ treated as unlabelled), so GMMs also serve for \textbf{clustering} and \textbf{open-set} modelling of a heterogeneous ``none-of-the-others'' class, not only closed-set classification. Both reuse the \textbf{full / diagonal / tied} covariance vocabulary, but with different meaning: in the MVG \emph{tied} shares $\boldsymbol{\Sigma}$ \textbf{across classes} and \emph{diagonal} is Naive Bayes, while in a GMM \emph{tied} shares $\boldsymbol{\Sigma}$ \textbf{across the components of one class} and \emph{diagonal} is \textbf{not} Naive Bayes. Finally the GMM adds a \textbf{model-selection} problem — the number of components — that cannot be settled by likelihood (which always increases with $K$) and requires \textbf{cross-validation}; the MVG has no such choice.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspect} & \textbf{Generative Gaussian (MVG)} & \textbf{Gaussian Mixture Model (GMM)} \\
+\hline
+Objective & ML of one Gaussian per class & ML of a mixture density (latent clusters) \\
+\hline
+Class-conditional & $\mathcal{N}(x;\boldsymbol{\mu}_c,\boldsymbol{\Sigma}_c)$ & $\sum_k w_{c,k}\mathcal{N}(x;\boldsymbol{\mu}_{c,k},\boldsymbol{\Sigma}_{c,k})$ \\
+\hline
+Assumptions & class data is Gaussian & weighted mix of Gaussians; cluster = latent \\
+\hline
+Training & closed-form ML, global optimum & EM (E/M steps), local optimum, init-dependent \\
+\hline
+Likelihood & bounded, well-posed & unbounded / ill-posed, degeneracy risk \\
+\hline
+Decision rule & LLR / $\arg\max$ posterior; linear (tied) or quadratic (full) & LLR / $\arg\max$ posterior; arbitrary non-linear ($\uparrow K_c$) \\
+\hline
+Supervision & supervised (labels) & unsupervised core; clustering / open-set \\
+\hline
+Model selection & none ($K=1$) & choose \#components via cross-validation \\
+\hline
+\end{tabular}
+}%
+\end{center}

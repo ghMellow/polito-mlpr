@@ -1,0 +1,57 @@
+\textbf{Logistic Regression} is a \textbf{discriminative} model for binary classification: instead of modelling the class-conditional densities, it models the \textbf{class posterior} $P(C\,|\,X)$ directly. It assumes the log-posterior-ratio is a \textbf{linear} function of the input, so the posterior is a sigmoid of a linear score.
+
+\section*{Classification Rule and Probabilistic Interpretation}
+
+Assuming a linear decision rule parametrized by $(\mathbf{w},b)$, the posterior for class $h_1$ is the \textbf{sigmoid} of a linear score:
+\[
+P(C{=}h_1\,|\,\mathbf{x},\mathbf{w},b)=\frac{1}{1+e^{-(\mathbf{w}^T\mathbf{x}+b)}}=\sigma(\mathbf{w}^T\mathbf{x}+b),\qquad \sigma(t)=\frac{1}{1+e^{-t}} .
+\]
+The \textbf{score} $s=\mathbf{w}^T\mathbf{x}+b$ has a precise probabilistic meaning: it is the \textbf{log-posterior-ratio}
+\[
+s=\mathbf{w}^T\mathbf{x}+b=\log\frac{P(C{=}1\,|\,\mathbf{x})}{P(C{=}0\,|\,\mathbf{x})} .
+\]
+The \textbf{classification rule} is therefore $s\gtrless 0$: a \textbf{linear hyperplane orthogonal to $\mathbf{w}$}. The magnitude $|s|$ relates to the (signed) distance from the separating surface, i.e. how confident the prediction is. Being discriminative, the model does \emph{not} need an explicit model of the feature density $f_X(\mathbf{x})$: in the joint likelihood $f_{X,C}=P(C\,|\,X,\theta)\,f_X(\mathbf{x})$ the term $f_X$ does not depend on $\theta=(\mathbf{w},b)$ and is dropped.
+
+\section*{Parameter Estimation and the Training Objective}
+
+Parameters are estimated by \textbf{Maximum Likelihood} on the labels (i.i.d. samples). Writing $y_i=\sigma(\mathbf{w}^T\mathbf{x}_i+b)$, each label is Bernoulli, $C_i\,|\,\mathbf{x}_i\sim\mathrm{Ber}(y_i)$, so
+\[
+\ell(\mathbf{w},b)=\sum_{i=1}^n\big[c_i\log y_i+(1-c_i)\log(1-y_i)\big].
+\]
+The same objective admits \textbf{three equivalent interpretations}:
+
+\textbf{(1) Maximum Likelihood} of the observed labels.
+
+\textbf{(2) Minimum cross-entropy.} Minimizing $J=-\ell=\sum_i H(c_i,y_i)$ minimizes the average \textbf{cross-entropy} $H(P,Q)=\mathbb{E}_P[-\log Q]$ between the empirical label distribution $P=\mathrm{Ber}(c_i)$ (an evaluator who knows the true label) and the predicted $Q=\mathrm{Ber}(y_i)$; it is minimized when $Q=P$.
+
+\textbf{(3) Empirical risk minimization.} Using $z_i=2c_i-1\in\{-1,+1\}$ and $s_i=\mathbf{w}^T\mathbf{x}_i+b$, the objective becomes a sum of per-sample losses:
+\[
+J(\mathbf{w},b)=\sum_{i=1}^n\log\!\big(1+e^{-z_i s_i}\big)=\sum_{i=1}^n\ell(-z_i s_i),\qquad \ell(t)=\log(1+e^{-t}).
+\]
+The loss $\ell(-z_is_i)$ is the \textbf{cost} of the prediction: when prediction and label agree ($z_is_i>0$) the cost decays (asymptotically) to $0$ as $|s_i|$ grows; when they disagree it grows (asymptotically) \emph{linearly} in $|s_i|$. This casts LR as the minimization of an \textbf{empirical risk} $R(\theta)=\sum_i\ell(\theta,\mathbf{x}_i,z_i)$. The solution has \textbf{no closed form} and is found with a numerical solver from the loss and its gradient.
+
+\section*{Regularization}
+
+If the classes are \textbf{linearly separable}, the loss has \emph{no minimum}: it can be driven to its infimum $\inf J=0$ by sending $\|\mathbf{w}\|\to\infty$, so the parameters do not converge. We add a \textbf{norm penalty} (regularization term), obtaining \textbf{regularized LR}:
+\[
+R(\mathbf{w},b)=\frac{\lambda}{2}\|\mathbf{w}\|^2+\frac{1}{n}\sum_{i=1}^n\log\!\big(1+e^{-z_i s_i}\big),
+\]
+an instance of \textbf{regularized risk minimization} $R=\Phi(\mathbf{w})+\frac1n\sum_i\ell$. The hyper-parameter $\lambda$ trades separation against simplicity (too large $\Rightarrow$ small norm but poor separation; too small $\Rightarrow$ overfitting) and is selected by \textbf{cross-validation} (it cannot be tuned by minimizing $R$, which would give $\lambda=0$). Unlike the unregularized model, regularized LR is \textbf{not invariant} to linear transformations of the features, so pre-processing (centering, variance standardization, whitening, length normalization) can help.
+
+\section*{Score, Priors and Recalibration}
+
+Since the parameters are trained on the labels, the score reflects the \textbf{empirical training prior}. To use it as a \textbf{log-likelihood ratio} for an arbitrary application, subtract the empirical prior log-odds:
+\[
+s_{llr}=\mathbf{w}^T\mathbf{x}+b-\log\frac{n_T}{n_F},\qquad\text{decide } s_{llr}\gtrless\log\frac{\pi_T}{1-\pi_T}.
+\]
+If the application prior $\pi_T$ is known \emph{before} training, one can directly optimize \textbf{prior-weighted LR}, which reweights the two class losses by $\pi_T/n_T$ and $(1-\pi_T)/n_F$; standard LR is the special case with the empirical prior.
+
+\section*{Non-linear Decision Functions and the Multiclass Case}
+
+\textbf{Non-linearity.} LR can be trained on an \textbf{expanded feature space} $\phi(\mathbf{x})$: a linear rule $\mathbf{w}^T\phi(\mathbf{x})+b$ in the expanded space corresponds to a \textbf{non-linear} (e.g. quadratic) boundary in the original space. The cost is that $\dim\phi$ can grow very quickly, raising computation and overfitting risk.
+
+\textbf{Multiclass (softmax).} For $K$ classes the posteriors take the \textbf{softmax} form
+\[
+P(C{=}k\,|\,\mathbf{x})=\frac{e^{\mathbf{w}_k^T\mathbf{x}+b_k}}{\sum_{j=1}^K e^{\mathbf{w}_j^T\mathbf{x}+b_j}},
+\]
+and training minimizes the multiclass cross-entropy (\textbf{softmax loss}) $-\sum_i\sum_k z_{ik}\log y_{ik}$ with $1$-of-$K$ labels. The model is \textbf{over-parametrized} (adding a constant vector to all $\mathbf{w}_j$ leaves it unchanged); a regularization term is added as in the binary case.

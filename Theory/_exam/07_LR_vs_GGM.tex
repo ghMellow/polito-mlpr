@@ -1,0 +1,42 @@
+\textbf{Logistic Regression} (LR) and the \textbf{Generative Gaussian Models} (MVG) are the prototypical \textbf{discriminative} and \textbf{generative} classifiers. They reach a probabilistic decision in opposite ways, yet share the same family of decision functions.
+
+\section*{What Each Model Estimates}
+
+The \textbf{generative} MVG models the \emph{joint} distribution through the class-conditional densities and the prior, $f(\mathbf{x}\,|\,c)\,P(c)$, and obtains the posterior by Bayes. The \textbf{discriminative} LR models the posterior $P(c\,|\,\mathbf{x})$ \emph{directly}, and does \textbf{not} need a model of the feature density $f_X(\mathbf{x})$. Consequently MVG is estimated in \textbf{closed form} (per-class ML means and covariances), whereas LR has \textbf{no closed form} and minimizes the cross-entropy / empirical risk numerically.
+
+\section*{The Shared Linear Form (LR $\leftrightarrow$ Tied MVG)}
+
+The key connection is that the \textbf{Tied MVG} has a \textbf{linear} log-posterior-ratio
+\[
+s=\mathbf{w}^T\mathbf{x}+b,\qquad \mathbf{w}\propto\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}_1-\boldsymbol{\mu}_0),
+\]
+which is \emph{exactly} the parametric form LR assumes a priori. So \textbf{LR (with linear features) and the Tied MVG share the same hypothesis class} --- linear log-odds --- and differ only in \emph{how} they pick $(\mathbf{w},b)$: MVG \textbf{generatively} (Gaussian ML, then derive the posterior), LR \textbf{discriminatively} (optimize the conditional likelihood, ignoring the densities). Likewise, the full MVG (QDA) gives a quadratic boundary, matched by LR trained on a quadratic feature expansion $\phi(\mathbf{x})$.
+
+\section*{Assumptions, Priors and Trade-offs}
+
+MVG assumes \textbf{Gaussian} class-conditionals (a strong assumption): when it holds, MVG is more \textbf{data-efficient}; when it is violated, LR --- which only assumes a linear log-odds --- is often more robust. On \textbf{priors}, the generative model separates likelihood from prior, so priors and costs can be changed at deployment by moving the threshold (the LLR is Bayes-ready); LR instead embeds the \textbf{empirical training prior} in its score and requires \textbf{recalibration} ($s_{llr}=s-\log\frac{n_T}{n_F}$) or \textbf{prior-weighted} training. Finally, a full MVG needs $\tfrac{D(D+1)}{2}$ covariance parameters per class (hence $N>D$, often PCA first), while linear LR needs only $D+1$ and scales better, at the price of a linear boundary unless features are expanded.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspect} & \textbf{Logistic Regression} & \textbf{Generative Gaussian (MVG / Tied)} \\
+\hline
+Type & Discriminative: models $P(C\,|\,\mathbf{x})$ directly & Generative: models $f(\mathbf{x}\,|\,c)P(c)$, then Bayes \\
+\hline
+Training & ML / cross-entropy, numerical (no closed form) & ML in closed form, per class \\
+\hline
+Assumptions & Linear log-odds; no model of $f_X$ & Gaussian class-conditionals \\
+\hline
+Decision rule & $s\gtrless 0$; linear (quadratic if $\phi(\mathbf{x})$) & $\mathrm{llr}\gtrless-\log\tfrac{P(c_1)}{P(c_0)}$; quadratic (QDA), linear if tied \\
+\hline
+Priors & Score tied to empirical prior $\Rightarrow$ recalibrate & Prior separated $\Rightarrow$ threshold set natively \\
+\hline
+Parameters & $D+1$ (linear) & full $\tfrac{D(D+1)}{2}$ per class; tied: one $\boldsymbol{\Sigma}$ \\
+\hline
+Strength & Robust to non-Gaussian features; few parameters & Data-efficient if Gaussian holds; LLR Bayes-ready \\
+\hline
+\end{tabular}
+}%
+\end{center}

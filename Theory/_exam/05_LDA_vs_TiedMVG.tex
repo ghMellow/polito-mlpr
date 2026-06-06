@@ -1,0 +1,62 @@
+Both \textbf{LDA} (binary) and the \textbf{Tied-covariance MVG} classifier produce a \textbf{linear decision boundary}, and in fact coincide under equal priors. They reach the same rule from two different criteria: LDA from a \emph{geometric} objective (Fisher ratio), Tied MVG from a \emph{generative probabilistic} model.
+
+\bigskip
+\section*{Model Formulation, Training and Inference}
+
+\textbf{LDA classifier.} LDA maximizes the \textbf{Fisher ratio}, the ratio of between-class to within-class scatter:
+\[
+\max_{\mathbf{w}} \; \frac{\mathbf{w}^T S_B \mathbf{w}}{\mathbf{w}^T S_W \mathbf{w}}, \qquad S_B = \tfrac{1}{N}\!\sum_c n_c(\boldsymbol{\mu}_c-\boldsymbol{\mu})(\boldsymbol{\mu}_c-\boldsymbol{\mu})^T,\;\; S_W = \tfrac{1}{N}\!\sum_c\!\sum_i (\mathbf{x}_{c,i}-\boldsymbol{\mu}_c)(\mathbf{x}_{c,i}-\boldsymbol{\mu}_c)^T.
+\]
+For the binary case the solution is in closed form, $\mathbf{w} \propto S_W^{-1}(\boldsymbol{\mu}_2-\boldsymbol{\mu}_1)$, and inference projects the sample as $\mathbf{w}^T\mathbf{x}_t$.
+
+\textbf{Tied MVG classifier.} Each class likelihood is Gaussian with a \textbf{single shared covariance}, $(X\,|\,C=c)\sim\mathcal{N}(\boldsymbol{\mu}_c,\boldsymbol{\Sigma})$. Parameters are estimated by ML: the means are the class sample means, and $\boldsymbol{\Sigma}$ is the \textbf{pooled within-class covariance}
+\[
+\boldsymbol{\Sigma}^* = \frac{1}{N}\sum_c \sum_{i:c_i=c}(\mathbf{x}_i-\boldsymbol{\mu}_c^*)(\mathbf{x}_i-\boldsymbol{\mu}_c^*)^T.
+\]
+Inference is a Bayes decision: compare the log-likelihood ratio to the log-odds threshold.
+
+\textbf{Model assumptions.} Both models make the \emph{same} assumption: within-class data are Gaussian with a \textbf{common (tied) covariance}. The key structural identity is that LDA's within-class scatter $S_W$ \textbf{is} the tied ML covariance $\boldsymbol{\Sigma}$ (up to the $1/N$ normalization).
+
+\bigskip
+\section*{The Relationship and the Decision Rules}
+
+For tied covariance the quadratic term of the MVG log-likelihood ratio, $A=-\tfrac12(\boldsymbol{\Sigma}_1^{-1}-\boldsymbol{\Sigma}_0^{-1})$, \textbf{vanishes}, leaving a purely linear score with direction $\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}_1-\boldsymbol{\mu}_0)$ --- the \textbf{same direction} as LDA's $S_W^{-1}(\boldsymbol{\mu}_2-\boldsymbol{\mu}_1)$. Setting the LLR to zero (equal priors) gives
+\[
+(\boldsymbol{\mu}_1-\boldsymbol{\mu}_0)^T\boldsymbol{\Sigma}^{-1}\mathbf{x} = \tfrac12(\boldsymbol{\mu}_1-\boldsymbol{\mu}_0)^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}_1+\boldsymbol{\mu}_0) = \frac{m_1+m_0}{2},
+\]
+which is exactly LDA's midpoint threshold. \textbf{Under equal priors the two binary classifiers are identical} --- same direction \emph{and} same threshold --- both reducing to a nearest-centroid (Mahalanobis) rule in the $\boldsymbol{\Sigma}$-whitened space.
+
+The decision rules differ only in how the threshold is set:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Aspect} & \textbf{LDA (binary)} & \textbf{Tied MVG (binary)} \\
+\hline
+Objective & Maximize Fisher ratio (geometric) & Maximize per-class Gaussian likelihood (generative) \\
+\hline
+Score direction & $S_W^{-1}(\boldsymbol{\mu}_2-\boldsymbol{\mu}_1)$ & $\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}_1-\boldsymbol{\mu}_0)$ --- same since $\boldsymbol{\Sigma}\propto S_W$ \\
+\hline
+Decision rule & $\mathbf{w}^T\mathbf{x}_t < t,\;\; t=\tfrac{m_1+m_2}{2}$ & $\mathrm{llr}(\mathbf{x}_t) \gtrless -\log\tfrac{P(c_1)}{P(c_0)}$ \\
+\hline
+Threshold / priors & Midpoint; optimal only for equal priors & Log-odds; natively handles priors and costs \\
+\hline
+Boundary & Linear & Linear (quadratic term $A$ cancels) \\
+\hline
+\end{tabular}
+}%
+\end{center}
+
+\medskip
+The \textbf{practical difference} is that the Tied MVG threshold is derived from the application priors (and can be shifted for costs), whereas LDA's midpoint is optimal only when the priors are equal --- if they differ, LDA's threshold must be adjusted by hand.
+
+\bigskip
+\section*{LDA for Multiclass Dimensionality Reduction}
+
+For multiclass problems LDA is used as a \textbf{dimensionality-reduction} technique: it collects the $m$ most discriminant directions in $W$, maximizing
+\[
+\max_W \; \mathrm{Tr}\!\left((W^T S_W W)^{-1}(W^T S_B W)\right).
+\]
+\textbf{Limitations.} Since $S_B$ has rank at most $K-1$, LDA can extract \textbf{at most $K-1$ directions} regardless of the feature dimension --- a hard ceiling that discards potentially useful directions when $K$ is small. It also assumes equal-covariance Gaussian classes (often violated), and $S_W$ becomes singular when $N<D$ (a common remedy is applying PCA first). In contrast, the Tied MVG handles the multiclass case \emph{directly} via per-class posteriors, with no $K-1$ ceiling.

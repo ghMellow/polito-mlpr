@@ -1,0 +1,84 @@
+The \textbf{Support Vector Machine} (SVM) is a \textbf{discriminative}, \textbf{non-probabilistic} binary classifier that gives a \textbf{geometric interpretation of the regularization term} of Logistic Regression. Among the infinitely many hyperplanes that separate two linearly separable classes, it selects the one with the \textbf{largest margin}, and through the \textbf{kernel trick} it achieves non-linear separation \emph{without} an explicit feature expansion. Its output \textbf{cannot be interpreted as a class posterior}.
+
+\section*{Maximum-Margin Hyperplane}
+
+Let $f(\mathbf{x})=\mathbf{w}^T\mathbf{x}+b$ be the separating surface and encode labels as $z_i\in\{+1,-1\}$ ($z_i=+1$ for $\mathcal{H}_T$, $z_i=-1$ for $\mathcal{H}_F$). The distance of a point from the hyperplane is $d(\mathbf{x}_i)=\frac{|f(\mathbf{x}_i)|}{\|\mathbf{w}\|}$, and the \textbf{margin} is the distance of the closest point. The maximum-margin hyperplane maximizes the minimum distance:
+\[
+\mathbf{w}^*,b^*=\arg\max_{\mathbf{w},b}\;\min_i\frac{|z_i(\mathbf{w}^T\mathbf{x}_i+b)|}{\|\mathbf{w}\|}.
+\]
+Since the classes are separable, an optimal solution has $z_i(\mathbf{w}^T\mathbf{x}_i+b)>0\ \forall i$, so the absolute value can be dropped: $\arg\max_{\mathbf{w},b}\frac{1}{\|\mathbf{w}\|}\min_i[z_i(\mathbf{w}^T\mathbf{x}_i+b)]$.
+
+\textbf{Motivation.} Logistic Regression picks the hyperplane maximizing the posteriors, but given any separating $\mathbf{w}$ one can lower the loss by keeping the orientation and \emph{growing} $\|\mathbf{w}\|$ (posteriors $\to0/1$). The margin gives a well-defined criterion instead.
+
+\section*{Canonical Form and Primal Problem}
+
+The objective is \textbf{invariant under rescaling} $(\mathbf{w},b)\to(\alpha\mathbf{w},\alpha b)$, so each solution is an equivalence class. We fix the representative by requiring $\min_i z_i(\mathbf{w}^T\mathbf{x}_i+b)=1$, hence $z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1\ \forall i$. The problem becomes the \textbf{primal SVM}:
+\[
+\arg\min_{\mathbf{w},b}\tfrac12\|\mathbf{w}\|^2\quad\text{s.t.}\quad z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1,\ i=1\ldots n .
+\]
+At the optimum the constraint is \textbf{active} ($\min_i=1$): a solution with $\min_i z_i(\mathbf{w}^T\mathbf{x}_i+b)=\psi>1$ could be rescaled by $1/\psi$, satisfying all constraints with smaller norm. This is a \textbf{convex quadratic programming} problem (convex objective, convex feasible set), so every local minimum is global.
+
+\section*{Lagrangian, Dual Problem and Support Vectors}
+
+Introducing multipliers $\alpha_i\ge0$ for each constraint,
+\[
+L(\mathbf{w},b,\boldsymbol\alpha)=\tfrac12\|\mathbf{w}\|^2-\sum_{i=1}^n\alpha_i\big[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\big].
+\]
+Setting $\nabla_{\mathbf{w}}L=0$ and $\partial L/\partial b=0$ gives $\mathbf{w}=\sum_i\alpha_iz_i\mathbf{x}_i$ and $\sum_i\alpha_iz_i=0$. Substituting yields the \textbf{dual problem}:
+\[
+\max_{\boldsymbol\alpha}\;\boldsymbol\alpha^T\mathbf{1}-\tfrac12\boldsymbol\alpha^T\mathbf{H}\boldsymbol\alpha,\qquad H_{ij}=z_iz_j\,\mathbf{x}_i^T\mathbf{x}_j,
+\]
+\[
+\text{s.t.}\quad \alpha_i\ge0,\qquad \sum_{i=1}^n\alpha_iz_i=0 .
+\]
+Crucially, $\mathbf{H}$ depends on the data \textbf{only through the dot products} $\mathbf{x}_i^T\mathbf{x}_j$: this is what enables kernels. \textbf{Weak/strong duality}: $L_D(\boldsymbol\alpha)\le L_P(\mathbf{w},b)$ for any feasible pair, and the \textbf{duality gap} $L_P-L_D\ge0$ vanishes at the optimum ($L_D(\boldsymbol\alpha^*)=L_P(\mathbf{w}^*,b^*)$).
+
+A solution is optimal iff it satisfies the \textbf{KKT conditions}: stationarity in $\mathbf{w}$ and $b$, primal feasibility $z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\ge0$, dual feasibility $\alpha_i\ge0$, and \textbf{complementary slackness} $\alpha_i[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1]=0$. The last one implies that points strictly outside the margin ($z_i(\mathbf{w}^T\mathbf{x}_i+b)>1$) have $\alpha_i=0$, while $\alpha_i\ne0$ means the point lies \textbf{on the margin}: these are the \textbf{support vectors}. Non-support vectors do not affect the separating surface; $b$ is recovered from the KKT conditions once $\boldsymbol\alpha$ is known.
+
+\section*{Soft Margin (Non-Separable Classes)}
+
+When classes are not separable, some constraints are always violated. We introduce \textbf{slack variables} $\xi_i\ge0$ relaxing the constraints to $z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1-\xi_i$. Choosing $\sigma=1$, $F(u)=u$ in the general penalty $\frac12\|\mathbf{w}\|^2+CF(\sum_i\xi_i^\sigma)$ gives the \textbf{soft-margin} objective:
+\[
+\min_{\mathbf{w},b,\boldsymbol\xi}\tfrac12\|\mathbf{w}\|^2+C\sum_{i=1}^n\xi_i\quad\text{s.t.}\quad z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1-\xi_i,\ \ \xi_i\ge0 .
+\]
+The $\xi_i$ are a \textbf{penalty} (not a count): points inside the margin have $\xi_i>0$, mis-classified points $\xi_i>1$, and $\sum_i\xi_i$ is an \textbf{upper bound on the number of errors}. The constant $C$ trades off margin width against training errors; the result is a \textbf{soft-margin hyperplane}. The dual is unchanged except for a \textbf{box constraint} $0\le\alpha_i\le C$ (besides $\sum_i\alpha_iz_i=0$).
+
+\section*{Hinge Loss and Comparison with Logistic Regression}
+
+On correctly classified points $\xi_i=0$, otherwise $\xi_i=1-z_i(\mathbf{w}^T\mathbf{x}_i+b)$, so the constraints are absorbed into the unconstrained primal
+\[
+\min_{\mathbf{w},b}\tfrac12\|\mathbf{w}\|^2+C\sum_{i=1}^n\max\!\big[0,\,1-z_i(\mathbf{w}^T\mathbf{x}_i+b)\big],
+\]
+where $f(s)=\max(0,1-s)$ is the \textbf{hinge loss}. In regularized-risk form SVM and LR share the same structure and differ \emph{only} in the per-sample loss:
+\[
+\text{SVM:}\ \ \tfrac{\lambda}{2}\|\mathbf{w}\|^2+\tfrac1n\sum_i\max\!\big[0,1-z_is_i\big],\qquad
+\text{LR:}\ \ \tfrac{\lambda}{2}\|\mathbf{w}\|^2+\tfrac1n\sum_i\log\!\big(1+e^{-z_is_i}\big),
+\]
+with $s_i=\mathbf{w}^T\mathbf{x}_i+b$. The hinge loss is \textbf{exactly zero} for points correctly classified beyond the margin (giving sparsity / support vectors), while the log-loss is always positive.
+
+\section*{Inference and the Kernel Trick}
+
+The score can be computed in two ways:
+\[
+\text{primal: } s(\mathbf{x}_t)=\mathbf{w}^T\mathbf{x}_t+b\ \ (O(D)),\qquad
+\text{dual: } s(\mathbf{x}_t)=\sum_{i:\alpha_i>0}\alpha_iz_i\,\mathbf{x}_i^T\mathbf{x}_t+b\ \ (O(\#SV)).
+\]
+The \textbf{decision rule} is the sign $s(\mathbf{x}_t)\gtrless0$. Both forms depend on the data \textbf{only through dot products}. A \textbf{non-linear} mapping $\boldsymbol\Phi:\mathbb{R}^D\to\mathcal{H}$ enters the dual and the score only as $\boldsymbol\Phi(\mathbf{x}_i)^T\boldsymbol\Phi(\mathbf{x}_j)$, so we replace it by a \textbf{kernel} $k(\mathbf{x}_1,\mathbf{x}_2)=\boldsymbol\Phi(\mathbf{x}_1)^T\boldsymbol\Phi(\mathbf{x}_2)$ without ever building $\boldsymbol\Phi$:
+\[
+H_{ij}=z_iz_j\,k(\mathbf{x}_i,\mathbf{x}_j),\qquad s(\mathbf{x}_t)=\sum_{i:\alpha_i>0}\alpha_iz_i\,k(\mathbf{x}_i,\mathbf{x}_t)+b .
+\]
+A linear separation in the expanded space is a \textbf{non-linear} separation in the original space, and the dual cost depends only on $N$, not on $\dim\mathcal{H}$. Common kernels: the \textbf{polynomial} kernel $k(\mathbf{x}_1,\mathbf{x}_2)=(\mathbf{x}_1^T\mathbf{x}_2+1)^d$ (e.g. $d=2$ from $\boldsymbol\Phi(\mathbf{x})=[\text{vec}(\mathbf{x}\mathbf{x}^T);\sqrt2\mathbf{x};1]$) and the \textbf{RBF / Gaussian} kernel $k(\mathbf{x}_1,\mathbf{x}_2)=e^{-\gamma\|\mathbf{x}_1-\mathbf{x}_2\|^2}$, associated to an \textbf{infinite-dimensional} mapping ($\gamma$ small $\Rightarrow$ wide kernel, a support vector influences far points; $\gamma$ large $\Rightarrow$ narrow, local influence). \textbf{Mercer's condition} is a \emph{sufficient} condition for $k$ to be a dot product in some space: $k$ symmetric and $\int k(\mathbf{u},\mathbf{v})g(\mathbf{u})g(\mathbf{v})\,d\mathbf{u}\,d\mathbf{v}>0$ for all square-integrable $g$. It does not say how to build kernels; one uses known kernels or composition rules (e.g. a sum of kernels is a kernel).
+
+\section*{Practical Considerations and Limitations}
+
+The kernel, its hyper-parameters and $C$ are selected by \textbf{cross-validation}; sometimes a linear classifier suffices (high-dimensional, almost separable features). SVM training is \textbf{not invariant under affine transformations}, so centering and whitening usually help. SVM scores have \textbf{no probabilistic interpretation}: a post-processing/\textbf{calibration} step is needed to obtain posteriors. For \textbf{class imbalance} (training prior $\ne$ target prior) one uses class-dependent costs $C_i$,
+\[
+\arg\min_{\mathbf{w},b}\tfrac12\|\mathbf{w}\|^2+\sum_{i=1}^n C_i\big[1-z_i(\mathbf{w}^T\mathbf{x}_i+b)\big]_+,\qquad
+C_T=C\tfrac{\pi_T}{\pi_T^{emp}},\ \ C_F=C\tfrac{\pi_F}{\pi_F^{emp}},
+\]
+simulating the application priors at training time (still without a probabilistic score). Finally, SVM is natively binary and \textbf{hard to extend to multiclass}. Kernels are not exclusive to SVMs: any method depending only on dot products (e.g. Logistic Regression) can be kernelized.
+
+\begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
+\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
+\textbf{Perché i support vector sono solo i punti sul margine.} La complementary slackness $\alpha_i[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1]=0$ impone che, per ogni punto, almeno uno tra $\alpha_i$ e il \emph{gap} $z_i(\mathbf{w}^T\mathbf{x}_i+b)-1$ sia nullo. Quindi un punto strettamente fuori dal margine (gap $>0$) deve avere $\alpha_i=0$ e, dato che $\mathbf{w}=\sum_i\alpha_iz_i\mathbf{x}_i$, \emph{non contribuisce} alla soluzione. Solo i punti con gap nullo (sul margine) possono avere $\alpha_i>0$: sono i support vector, gli unici che definiscono l'iperpiano.
+\end{tcolorbox}
