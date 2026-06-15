@@ -1,0 +1,69 @@
+# Glossario: dai nostri "main pillar" ai sinonimi usati dal prof nelle domande
+
+*Mappa generata leggendo tutte le domande pubblicate in `example_exam/` (incluso `_examples.md`) e
+incrociandole con gli **8 assi fissi** definiti in `Theory/_utils/prompt.txt` (Prompt 1) — gli
+stessi assi che strutturano ogni `card.md` in `raw/`. Obiettivo: riconoscere quando una domanda
+formulata in modo diverso sta in realtà chiedendo lo stesso pillar — e quando invece due
+formulazioni "simili" puntano in realtà ad angolazioni diverse della stessa cosa.*
+
+## I nostri 8 main pillar (promemoria)
+
+1. Motivation and goal of the model
+2. Mathematical formulation (objective function / optimality criterion)
+3. Training procedure (how parameters are estimated)
+4. Inference procedure (how the model is used for classification)
+5. Form of decision rules (binary & multiclass)
+6. Model assumptions
+7. Model variants and their differences
+8. Limitations of the approach
+
+Queste sono le colonne (asse) di ogni nostra `card.md`. La tabella sotto raccoglie, per ciascun
+asse, **come lo stesso concetto viene effettivamente formulato** nelle domande pubblicate — e
+dove il fraseggio "simile" nasconde in realtà un'angolazione diversa.
+
+## Tabella: pillar → sinonimi osservati → attenzione
+
+| Main pillar (nostro) | Sinonimi osservati nelle domande pubblicate (fonte) | ⚠️ Attenzione — differenza sottile da non confondere |
+|---|---|---|
+| **1. Motivation / goal** | "Goals of the two models and their formulation" (`_examples` Q1, 2024-06-17) <br> "Goal and possible applications of the model" (2025-07-17, PCA/LDA) | "Goal" da solo chiede *perché esiste* il modello (generativo vs discriminativo, riduzione dimensionale vs classificazione); se è incollato a "and their formulation" è un trampolino verso la matematica — rispondi e passa subito oltre, non dilungarti in discorsività. "Possible applications" allarga il goal ai *casi d'uso pratici* (es. PCA per preprocessing/visualizzazione/denoising, non solo "riduce le dimensioni") — elenca gli usi, non solo l'obiettivo astratto. |
+| **2. Mathematical formulation** | "...and their formulation" (`_examples` Q1) <br> "Model formulation, training objective and inference procedure" (`_examples` Q2, 2024-09-11 — LDA) <br> "Formulation of the model, including also the training objective and its solution" (2025-07-17 — PCA/LDA) <br> "Definition of the model, interpretation of the model parameters and formulation [...] as a latent variable model" (`_examples` Q6, 2024-06-17, 2025-07-17 — GMM) | Il perimetro di "formulation" **non è costante**: a volte è solo l'equazione/densità statica; in 2025-07-17 (PCA/LDA) include esplicitamente *training objective and its solution* → ti chiede anche la derivazione, non il solo enunciato. Per GMM, "definition of the model" (densità = somma pesata di gaussiane) e "formulation as a latent variable model" (storia generativa con variabile nascosta $z$ che seleziona la componente) sono presentate come **due rappresentazioni distinte dello stesso oggetto**, entrambe esplicitamente richieste — non sono la stessa cosa ripetuta, sono due "viste" complementari da saper collegare. |
+| **3. Training procedure / Estimation of parameters** | "Training objective of the two models" (`_examples` Q1) <br> "[...] training objective and inference procedure [...]" / "Model assumptions, training objective and inference procedure" (`_examples` Q2) <br> "Estimation of the model parameters" (`_examples` Q3 MVG, Q6 GMM, 2024-06-17) <br> "Estimation of the model parameters and possible interpretations of the training objective function" (`_examples` Q4, 2025-06-26 — LR) <br> "Training procedure and estimation of the GMM parameters" (2025-07-17 — GMM) | Qui si annida la confusione più insidiosa: sono **tre richieste diverse** spesso impacchettate in una riga sola: <br> ① **"Training objective"** = COSA si ottimizza (l'enunciato del criterio: minimizzare cross-entropy per LR, massimizzare scatter-tra/scatter-entro per LDA, hinge loss + margine per SVM); <br> ② **"Estimation of the model parameters"** = COME si arriva ai numeri (la procedura: stime ML in forma chiusa per MVG — media/covarianza campionaria —, eigen-decomposition per PCA/LDA, solver numerico per LR, QP/duale per SVM, EM per GMM); <br> ③ **"possible interpretations of the training objective function"** (solo LR) = un terzo angolo, concettuale: collegare LO STESSO obiettivo a letture equivalenti (ML ≡ min cross-entropy ≡ empirical risk minimization). <br> Quando le vedi in una riga sola vanno comunque date come **tre risposte separate** — fonderle in "si minimizza X" perde punti su 2 dei 3 sotto-assi. |
+| **4. Inference procedure** | "How the models can be employed in classification tasks" (`_examples` Q1, 2025-07-17 — generico) <br> "inference procedure (i.e. how to employ the model for classification)" (`_examples` Q2 — glossa esplicita: i due termini sono dichiarati equivalenti) <br> "How the model can be employed to perform inference (i.e. classify a test sample) for both multi-class and binary problems" (`_examples` Q3 — MVG, esplicitamente spezzato bin/multi) <br> "How the model can be used to solve classification problems, including open-set classification tasks" (`_examples` Q6, 2024-06-17 — GMM) <br> "[...] detailing both the training strategy and the inference procedure [...] and explaining how the model can be used to address open-set scenarios" (2025-07-17 — GMM, versione estesa) | "How is X employed for classification" è una formula **generica** che nasconde due richieste molto diverse: per modelli nativamente di classificazione (MVG, LR, SVM) descrivi la pipeline "score → decision rule"; per modelli il cui scopo primario NON è classificare (PCA = riduzione dimensionale; LDA = riduzione **e** classificazione) la domanda vuole il **ponte**: come passi dall'output nativo (proiezione su componenti/direzioni) a una decisione di classe — "PCA da sola non classifica, ecco come la inserisci in una pipeline". Inoltre **"open-set classification"** è un sotto-caso specifico rilevante **solo** per modelli a stima di densità (GMM): testa se sai usare una soglia di verosimiglianza per "rifiutare" un campione come "classe sconosciuta" — un dettaglio facile da dimenticare perché non esiste nei modelli discriminativi. |
+| **5. Form of decision rules (bin/multi)** | "The form of the decision rules of LDA and Tied MVG binary classifiers" (`_examples` Q2) <br> "The form of decision rules for binary problems" (`_examples` Q3 — MVG) <br> "Classification rule of SVM and interpretation of the SVM score" (`_examples` Q5) <br> "Classification rule of the binary logistic regression model" / "Classification rule of the model" (`_examples` Q4, 2025-06-26 — LR) <br> "Differences [...] in terms of assumptions and decision rules" (`_examples` Q3, 2025-06-26 — incorporata nella domanda sulle varianti) | Il prof usa "classification rule" e "decision rule" in modo quasi intercambiabile ma con **inflessione diversa per famiglia di modelli**: <br> • **"Classification rule of [LR/SVM]"** → vuole la ricetta operativa ("predici classe 1 se score > soglia") **+** cosa rappresenta esattamente lo score (LLR? log-odds? distanza dal margine? punteggio non-probabilistico?) — l'accento è sull'**interpretazione dello score**. <br> • **"The form of the decision rule(s)" (MVG/LDA/Tied)** → vuole l'espressione matematica **esplicita** del confine (quadratico vs lineare, come sono fatti i coefficienti $A,\mathbf b,c$, quando degenera da quadratico a lineare) — l'accento è sull'**algebra**, non sulla ricetta. <br> Stesso oggetto, due angolazioni: preparati a rispondere in entrambi i registri. |
+| **6. Model assumptions** | "Model assumptions" (`_examples` Q2 — Tied MVG, Q3 — MVG; 2025-06-26) <br> "Model assumptions, training objective and inference procedure" (`_examples` Q2 — incorporata in elenco più lungo) <br> "Differences [...] in terms of assumptions and decision rules" (`_examples` Q3, 2025-06-26) <br> "Explain the Naive Bayes assumption for generative models, and provide an explicit expression for a Naive Bayes GMM-based density model" (2025-07-17) | A volte "assumptions" vuole un **elenco** (cosa presuppone il modello: densità gaussiane? log-odds lineare? i.i.d.? separabilità lineare?); ma quando è incollata a "decision rules" o a "provide an explicit expression", il prof testa se sai tracciare la **conseguenza** dell'assunzione nella matematica (assunzione ⇒ cosa cambia nella formula/nel confine). Non basta dire "Naive Bayes assume indipendenza tra feature": devi saper scrivere la densità fattorizzata / covarianza diagonale che ne consegue. |
+| **7. Model variants and their differences** | "Naive Bayes and Tied Covariance variants of the model, focusing on [...] Differences [...] Benefits and limitations" (`_examples` Q3, 2025-06-26 — MVG) <br> "[...] possible variations of the model" (`_examples` Q6, 2024-06-17 — GMM, incollata a "potential issues [...] ways to address") <br> "How the model can [be] extended to perform non-linear classification" (2025-06-26 — LR) <br> "How the model can [be] extended [...] to address score calibration issues" (2025-06-26 — LR) <br> "SVMs for non linear classification" (`_examples` Q5) <br> "Explain possible approaches to obtain non-linear decision functions with these two classifiers" (`_examples` Q4 — LR vs SVM) | **La trappola più grande di tutte**: per LR/SVM il prof **non usa quasi mai la parola "variant"**. Chiede invece "come si può **estendere** il modello per fare X" (classificazione non-lineare, calibrazione, ...). Queste domande "extension" **sono** il pillar "Variants" travestito: devi riconoscere che "LR con feature expansion/quadratica", "kernel SVM", "calibrazione via prior-weighted LR sugli score" **sono** le varianti, anche se la parola non compare mai. Viceversa, quando il prof **dice** esplicitamente "variants" (MVG: Naive Bayes / Tied), la domanda include **sempre** anche "differenze dal modello base" + "benefici/limiti" — quindi è in realtà **tre risposte incollate** (cosa cambia / come differisce / perché è meglio-o-peggio), mai un semplice elenco di nomi. |
+| **8. Limitations of the approach** | "[...] the objective function of LDA and the limitations of the approach" (`_examples` Q2 — limiti di LDA *come tecnica di riduzione dimensionale*, scope ristretto dal contesto!) <br> "Benefits and limitations with respect to the unconstrained model" (`_examples` Q3, 2025-06-26 — limiti **relativi**, non assoluti) <br> "Potential issues of GMMs, possible ways to address these issues" (`_examples` Q6, 2024-06-17 — "issues" = sinonimo di "limitations", ma sempre con il rimedio annesso) | "Limitations" **non è praticamente mai chiesto isolato**. Compare sempre: <br> (a) **relativo a qualcos'altro** ("limiti rispetto al modello non vincolato", non limiti assoluti); oppure <br> (b) **legato a uno scope preciso** (i limiti di LDA "come tecnica di riduzione dimensionale" — rispondere coi limiti da classificatore sarebbe fuori tema); oppure <br> (c) **abbinato a un rimedio** ("issues... and ways to address them" — per GMM: regolarizzazione delle covarianze, vincoli sugli autovalori minimi, inizializzazione/LBG per l'EM). <br> Prima di rispondere individua **a cosa è relativo** e **in quale scope** la domanda inquadra i "limiti" — decide cosa includere e cosa no. |
+
+## Pattern trasversali (non legati a un singolo pillar)
+
+Alcune formulazioni non introducono un nuovo asse: ricombinano gli 8 pillar in chiave di
+**confronto** o si spostano completamente fuori dal framework teorico (parte progetto).
+
+- **Confronti tra modelli** — "Describe and compare X and Y, covering: ..."; "Considering X [...]
+  and Y [...], detail: [...] The relationship between the two models [...]"; "Compare the PCA and
+  LDA approaches in the context of pattern classification"; "Briefly compare [...] the relative
+  performance of [...]". Non sono un pillar nuovo: ti chiedono di ripercorrere **gli stessi 8 assi
+  per due modelli in parallelo**, dicendo esplicitamente dove coincidono / dove divergono / dove
+  uno è caso speciale dell'altro. È esattamente ciò che produce la fase "confronti" (Prompt 2) di
+  `/prep-esame` — le vostre tabelle di confronto in `raw/MM_X_vs_Y/` **sono** la prova generale per
+  queste domande.
+- **Project part** — "relative performance of X vs Y on the project validation set", "explain the
+  gap between minimum and actual DCF", "effects of regularization on the model performance" — è
+  un'altra bestia: non interroga gli 8 assi teorici in astratto, ma chiede di collegare teoria
+  (assunzioni/limiti dei pillar) al **comportamento empirico sul vostro dataset di progetto**.
+  Richiede ragionamento sulle caratteristiche specifiche del dataset, non recitazione dei pillar.
+- **Riassunti in italiano** (2025-02-06, 2026-02-09: "confronto generativo vs discriminativo",
+  "lda-tied", "svm-lr") sono solo **abbreviazioni studentesche** delle stesse coppie di confronto
+  viste per esteso altrove — stessa identica richiesta (percorso cross-pillar), annotata in
+  sintesi da chi ha sostenuto l'esame.
+
+## Come usare questa mappa mentre studi
+
+1. Quando leggi una domanda d'esame, **non fermarti alla prima parola che riconosci** ("formulation",
+   "rule", "variant"...): controlla a quale dei sinonimi sopra corrisponde davvero e se è
+   incollata ad altre richieste (quasi sempre lo è).
+2. Se una formulazione non compare in tabella, prova a capire **a quale dei nostri 8 assi
+   appartiene comunque** — è probabile sia una variazione non ancora vista dello stesso pillar
+   (il prof ricicla gli stessi 8 assi su tutti i modelli, cambiando solo il fraseggio).
+3. Le righe "⚠️ Attenzione" sono i punti dove perdere punti è più facile: rispondi *separando*
+   le sotto-richieste impacchettate, anche quando il fraseggio le presenta come un'unica frase.
