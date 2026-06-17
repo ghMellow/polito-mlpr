@@ -24,6 +24,13 @@ Only the bare minimum to keep "in your head". For full details → linked cards 
 - **Does not use labels** → no guarantee that maximum variance is discriminative.
 - Requires **centering** the data. Often used as pre-processing (noise reduction / regularization for other models).
 
+**Prototype questions to nail:**
+
+- Goal and possible applications of the model (preprocessing, denoising, visualization — not just "reduces dimensionality").
+- Formulation of the model, **including the training objective and its solution** (derive it, don't just state the result).
+- Characteristics of the PCA components (ordering, orthogonality, variance explained).
+- How the model can be employed in classification tasks (PCA alone does not classify — explain the bridge: projection + downstream classifier).
+
 📄 Full card: [raw/01_PCA/pca.md](raw/01_PCA/pca.md)
 
 ---
@@ -34,6 +41,15 @@ Only the bare minimum to keep "in your head". For full details → linked cards 
 - Solution = **generalized eigenvalue problem** $S_W^{-1}S_B\mathbf{w}=\lambda\mathbf{w}$.
 - Binary case: closed form $\mathbf{w}\propto S_W^{-1}(\mu_2-\mu_1)$, **midpoint** threshold.
 - At most $K-1$ useful directions; assumes Gaussians with **common covariance**.
+
+**Prototype questions to nail:**
+
+- Goals of the model and its formulation, and the training objective (Fisher ratio).
+- Characteristics of the LDA discriminant directions.
+- Model formulation, training objective and inference procedure for **binary** classification.
+- The relationship between LDA and the Tied MVG classifier (same direction $\mathbf{w}$, different derivation and threshold).
+- The form of the decision rule for the binary LDA classifier.
+- As a **multiclass dimensionality-reduction technique**: the objective function and the limitations of the approach (scope = reduction, not classification accuracy).
 
 📄 Full card: [raw/02_LDA/card.md](raw/02_LDA/card.md)
 
@@ -46,6 +62,15 @@ Only the bare minimum to keep "in your head". For full details → linked cards 
 - Binary decision = **LLR vs threshold** (log-odds of the priors).
 - Variants: **Full** (quadratic boundary, QDA) · **Tied** (shared covariance → **linear** boundary, ≈ LDA) · **Naive Bayes** (diagonal covariance).
 
+**Prototype questions to nail:**
+
+- Model assumptions (Gaussian class-conditional densities, what each variant assumes about $\Sigma_c$).
+- Estimation of the model parameters (ML → empirical mean/covariance per class).
+- Inference procedure for both **binary and multiclass** problems.
+- The form of the decision rule for binary problems (explicit $\mathbf{A},\mathbf{b},c$, quadratic vs linear).
+- Naive Bayes and Tied Covariance **variants**: differences from the base (full) model, benefits and limitations of each.
+- The relationship between Tied MVG and LDA.
+
 📄 Full card: [raw/04_GGM/card.md](raw/04_GGM/card.md)
 
 ---
@@ -56,6 +81,14 @@ Only the bare minimum to keep "in your head". For full details → linked cards 
 - Training = minimizing **cross-entropy** (= ML on the labels), no closed form → numerical solver.
 - Decision: $s=\mathbf{w}^Tx+b \gtrless 0$; for priors different from training, needs **recalibration** ($s_{llr}=s-\log\frac{n_T}{n_F}$).
 - On separable classes the loss has no minimum ($\|w\|\to\infty$) → **regularization** is required.
+
+**Prototype questions to nail:**
+
+- Classification rule of the model and interpretation of the score (it's an estimate of the LLR / log-posterior-odds).
+- Probabilistic interpretation of the model and of the classification score.
+- Estimation of the parameters **and** possible interpretations of the training objective (ML ≡ minimizing cross-entropy ≡ empirical risk minimization — give all three readings, not just one).
+- Compare the objective function with SVM's (log-loss vs hinge loss, both regularized risk).
+- How the model can be **extended** for non-linear classification (feature expansion) and for score calibration (these "extensions" *are* the variants pillar for LR, even though the word "variant" never appears).
 
 📄 Full card: [raw/06_LR/card.md](raw/06_LR/card.md)
 
@@ -69,6 +102,14 @@ Only the bare minimum to keep "in your head". For full details → linked cards 
 - Dual: $\max_\alpha \alpha^T\mathbf{1}-\frac12\alpha^TH\alpha$, $H_{ij}=z_iz_jx_i^Tx_j$, depends **only on dot products** → **kernel trick**.
 - $\mathbf{w}^*=\sum_i\alpha_i^*z_ix_i$; only points on the margin have $\alpha_i\ne0$ → **support vectors** (complementary slackness/KKT).
 
+**Prototype questions to nail:**
+
+- Classification rule of SVM **and interpretation of the SVM score** (non-probabilistic, signed distance from the margin — not an LLR).
+- The concept of margin.
+- **Primal** (constrained convex QP form *and* hinge-loss form) **and dual** formulation of the objective, **and the explicit relationship between the primal and dual solutions** (these are 4 sub-answers, not 1).
+- SVMs for **non-linear classification** (kernel trick, polynomial/RBF, Mercer's condition).
+- Compare the objective function with LR's (hinge loss vs log-loss).
+
 📄 Full card: [raw/09_SVM/card.md](raw/09_SVM/card.md)
 
 ---
@@ -79,6 +120,15 @@ Only the bare minimum to keep "in your head". For full details → linked cards 
 - Training = **EM**: E-step computes responsibilities $\gamma_{c,i}$, M-step updates $\mu_c,\Sigma_c,w_c$. Likelihood is monotonic, but only reaches **local optima** (init via k-means/LBG).
 - Classification: one GMM per class → LLR with mixture densities → **arbitrary non-linear** boundary.
 - Variants: full / diagonal / tied (across components of the same class!). Risk: **unbounded** likelihood as $\Sigma_c\to0$.
+
+**Prototype questions to nail:**
+
+- Definition of the model, interpretation of the parameters, **and formulation of the GMM as a latent variable model** (two complementary "views" of the same object — both expected).
+- Training procedure and estimation of the parameters (EM: E-step responsibilities, M-step updates; monotonic but only local optima).
+- How the model is used for classification, for **both binary and multiclass** problems, **including open-set scenarios** (likelihood-threshold rejection — a detail unique to density-based models).
+- The Naive Bayes assumption applied to GMM-based density models (explicit factorized/diagonal-covariance expression).
+- Potential issues of GMMs and possible ways to address them (covariance regularization, eigenvalue constraints, EM initialization/LBG), and possible variants (full/diag/tied).
+- The relationship between GMM and GGM (GGM = GMM with $K=1$ component per class).
 
 📄 Full card: [raw/12_GMM/card.md](raw/12_GMM/card.md)
 

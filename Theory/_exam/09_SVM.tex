@@ -79,84 +79,171 @@ C_T=C\tfrac{\pi_T}{\pi_T^{emp}},\ \ C_F=C\tfrac{\pi_F}{\pi_F^{emp}},
 simulating the application priors at training time (still without a probabilistic score). Finally, SVM is natively binary and \textbf{hard to extend to multiclass}. Kernels are not exclusive to SVMs: any method depending only on dot products (e.g. Logistic Regression) can be kernelized.
 
 \begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
-\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
-\textbf{Perché i support vector sono solo i punti sul margine.} La complementary slackness $\alpha_i[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1]=0$ impone che, per ogni punto, almeno uno tra $\alpha_i$ e il \emph{gap} $z_i(\mathbf{w}^T\mathbf{x}_i+b)-1$ sia nullo. Quindi un punto strettamente fuori dal margine (gap $>0$) deve avere $\alpha_i=0$ e, dato che $\mathbf{w}=\sum_i\alpha_iz_i\mathbf{x}_i$, \emph{non contribuisce} alla soluzione. Solo i punti con gap nullo (sul margine) possono avere $\alpha_i>0$: sono i support vector, gli unici che definiscono l'iperpiano.
+\textcolor{gray}{\footnotesize\textit{[THEORETICAL INTEGRATION]}}\\
+\textbf{Why support vectors are only the points on the margin.} The complementary slackness condition $\alpha_i[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1]=0$ requires that, for each point, at least one of $\alpha_i$ and the \emph{gap} $z_i(\mathbf{w}^T\mathbf{x}_i+b)-1$ is zero. Therefore a point strictly outside the margin (gap $>0$) must have $\alpha_i=0$ and, since $\mathbf{w}=\sum_i\alpha_iz_i\mathbf{x}_i$, \emph{does not contribute} to the solution. Only points with zero gap (on the margin) can have $\alpha_i>0$: these are the support vectors, the only ones that define the hyperplane.
 \end{tcolorbox}
 
 \newpage
-\section*{Versione alternativa (ordinata secondo la traccia d'esame)}
+\section*{Alternative Version (ordered according to the exam outline)}
 
-\textcolor{gray}{\footnotesize\textit{Stessa teoria, riorganizzata seguendo l'ordine dei punti richiesti dalla domanda d'esame: (1) classification rule e interpretazione dello score, (2) margine, (3) primal (QP e hinge loss) e dual, con relazione esplicita tra le due soluzioni, (4) SVM non lineari.}}
+\textcolor{gray}{\footnotesize\textit{Same theory, reorganized following the order of points required by the exam question: (1) classification rule and score interpretation, (2) margin, (3) primal (QP and hinge loss) and dual, with explicit relation between the two solutions, (4) non-linear SVMs.}}
 
-\subsection*{1. Classification Rule e Interpretazione dello Score}
+\subsection*{1. Classification Rule and Score Interpretation}
 
-La SVM è un classificatore \textbf{discriminativo non probabilistico}: calcola uno score $s(\mathbf{x})=\mathbf{w}^T\mathbf{x}+b$ e assegna la classe in base al segno,
+SVM is a \textbf{discriminative, non-probabilistic} classifier: it computes a score $s(\mathbf{x})=\mathbf{w}^T\mathbf{x}+b$ and assigns the class based on its sign,
 \[
-\text{decisione: } z=+1 \text{ se } s(\mathbf{x})>0,\qquad z=-1 \text{ se } s(\mathbf{x})<0 .
+\text{decision: } z=+1 \text{ if } s(\mathbf{x})>0,\qquad z=-1 \text{ if } s(\mathbf{x})<0 .
 \]
-Lo score è la \textbf{distanza (con segno) dall'iperpiano separatore}, scalata da $\|\mathbf{w}\|$: \emph{non} è una log-likelihood ratio né un posterior, quindi \textbf{non può essere interpretato probabilisticamente} senza un passo di calibrazione successivo. Il suo valore assoluto indica però quanto il punto è "lontano" (e quindi quanto confidentemente classificato), il che lo rende comunque utile per applicare soglie diverse da $0$ in funzione dei costi applicativi.
+The score is the \textbf{signed distance from the separating hyperplane}, scaled by $\|\mathbf{w}\|$: it is \emph{not} a log-likelihood ratio nor a posterior, so it \textbf{cannot be interpreted probabilistically} without a subsequent calibration step. Its absolute value does indicate how far a point is from the boundary (and thus how confidently it is classified), making it useful for applying thresholds other than $0$ depending on application costs.
 
-\subsection*{2. Concetto di Margine}
+\subsection*{2. Concept of Margin}
 
-Dato $f(\mathbf{x})=\mathbf{w}^T\mathbf{x}+b$ e $z_i\in\{+1,-1\}$, la distanza di un punto dall'iperpiano è $d(\mathbf{x}_i)=\dfrac{|f(\mathbf{x}_i)|}{\|\mathbf{w}\|}$. Il \textbf{margine} è la distanza minima tra l'iperpiano e i punti del training set:
+Given $f(\mathbf{x})=\mathbf{w}^T\mathbf{x}+b$ and $z_i\in\{+1,-1\}$, the distance of a point from the hyperplane is $d(\mathbf{x}_i)=\dfrac{|f(\mathbf{x}_i)|}{\|\mathbf{w}\|}$. The \textbf{margin} is the minimum distance between the hyperplane and the training points:
 \[
 \mathbf{w}^*,b^*=\arg\max_{\mathbf{w},b}\;\min_i\frac{|z_i(\mathbf{w}^T\mathbf{x}_i+b)|}{\|\mathbf{w}\|}=\arg\max_{\mathbf{w},b}\frac{1}{\|\mathbf{w}\|}\min_i\big[z_i(\mathbf{w}^T\mathbf{x}_i+b)\big]
 \]
-(la seconda forma vale perché, su una soluzione separante, $z_i(\mathbf{w}^T\mathbf{x}_i+b)>0\ \forall i$). \textbf{Motivazione}: la Logistic Regression massimizza i posterior, ma a parità di orientamento di $\mathbf{w}$ si può sempre ridurre la loss aumentando $\|\mathbf{w}\|$ (i posterior tendono a $0/1$), senza un criterio di arresto naturale. Il margine fornisce un criterio geometrico ben definito, indipendente dalla scala di $\mathbf{w}$.
+(the second form holds because, on a separating solution, $z_i(\mathbf{w}^T\mathbf{x}_i+b)>0\ \forall i$). \textbf{Motivation}: Logistic Regression maximizes the posteriors, but given any orientation of $\mathbf{w}$ one can always reduce the loss by increasing $\|\mathbf{w}\|$ (posteriors tend to $0/1$), with no natural stopping criterion. The margin provides a well-defined geometric criterion, independent of the scale of $\mathbf{w}$.
 
-\subsection*{3. Primal e Dual, e Relazione tra le Soluzioni}
+\subsection*{3. Primal and Dual, and Relation Between the Solutions}
 
-\textbf{(a) Primal -- forma QP vincolata.} L'obiettivo è invariante per riscalamento $(\mathbf{w},b)\to(\alpha\mathbf{w},\alpha b)$: si fissa il rappresentante imponendo $\min_i z_i(\mathbf{w}^T\mathbf{x}_i+b)=1$. Per il caso \textbf{separabile} (hard margin):
+\textbf{(a) Primal -- constrained QP form.} The objective is invariant under rescaling $(\mathbf{w},b)\to(\alpha\mathbf{w},\alpha b)$: we fix the representative by requiring $\min_i z_i(\mathbf{w}^T\mathbf{x}_i+b)=1$. For the \textbf{separable} case (hard margin):
 \[
 \arg\min_{\mathbf{w},b}\tfrac12\|\mathbf{w}\|^2\quad\text{s.t.}\quad z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1,\ i=1\ldots n .
 \]
-È un problema di \textbf{programmazione quadratica convessa} (obiettivo convesso, regione ammissibile convessa): ogni minimo locale è globale.
+This is a \textbf{convex quadratic programming} problem (convex objective, convex feasible set): every local minimum is global.
 
-Per il caso \textbf{non separabile} si introducono \textbf{slack variables} $\xi_i\ge0$, rilassando i vincoli a $z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1-\xi_i$:
+For the \textbf{non-separable} case, \textbf{slack variables} $\xi_i\ge0$ are introduced, relaxing the constraints to $z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1-\xi_i$:
 \[
 \min_{\mathbf{w},b,\boldsymbol\xi}\tfrac12\|\mathbf{w}\|^2+C\sum_{i=1}^n\xi_i\quad\text{s.t.}\quad z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1-\xi_i,\ \ \xi_i\ge0 .
 \]
-Gli $\xi_i$ sono una \textbf{penalità} (non un conteggio): punti dentro il margine hanno $\xi_i>0$, punti mal classificati $\xi_i>1$, e $\sum_i\xi_i$ è un \textbf{upper bound sul numero di errori}. $C$ bilancia ampiezza del margine vs errori di training.
+The $\xi_i$ are a \textbf{penalty} (not a count): points inside the margin have $\xi_i>0$, misclassified points have $\xi_i>1$, and $\sum_i\xi_i$ is an \textbf{upper bound on the number of errors}. $C$ trades off margin width against training errors.
 
-\textbf{(b) Primal -- forma hinge loss.} Sui punti correttamente classificati $\xi_i=0$, altrimenti $\xi_i=1-z_i(\mathbf{w}^T\mathbf{x}_i+b)$: i vincoli si assorbono in un problema \textbf{non vincolato}
+\textbf{(b) Primal -- hinge loss form.} On correctly classified points $\xi_i=0$, otherwise $\xi_i=1-z_i(\mathbf{w}^T\mathbf{x}_i+b)$: the constraints are absorbed into an \textbf{unconstrained} problem
 \[
 \min_{\mathbf{w},b}\tfrac12\|\mathbf{w}\|^2+C\sum_{i=1}^n\max\!\big[0,\,1-z_i(\mathbf{w}^T\mathbf{x}_i+b)\big],
 \]
-dove $f(s)=\max(0,1-s)$ è la \textbf{hinge loss}. In forma di \emph{regularized risk}, SVM e LR condividono la stessa struttura e differiscono solo nella loss per campione:
+where $f(s)=\max(0,1-s)$ is the \textbf{hinge loss}. In \emph{regularized risk} form, SVM and LR share the same structure and differ only in the per-sample loss:
 \[
 \text{SVM:}\ \ \tfrac{\lambda}{2}\|\mathbf{w}\|^2+\tfrac1n\sum_i\max\!\big[0,1-z_is_i\big],\qquad
 \text{LR:}\ \ \tfrac{\lambda}{2}\|\mathbf{w}\|^2+\tfrac1n\sum_i\log\!\big(1+e^{-z_is_i}\big),\quad s_i=\mathbf{w}^T\mathbf{x}_i+b.
 \]
-La hinge loss è \textbf{esattamente nulla} per i punti correttamente classificati oltre il margine (da cui la \textbf{sparsità} dei support vector), mentre la log-loss è sempre positiva.
+The hinge loss is \textbf{exactly zero} for points correctly classified beyond the margin (giving \textbf{sparsity} of support vectors), while the log-loss is always positive.
 
-\textbf{(c) Dual.} Introducendo i moltiplicatori di Lagrange $\alpha_i\ge0$,
+\textbf{(c) Dual.} Introducing Lagrange multipliers $\alpha_i\ge0$,
 \[
 L(\mathbf{w},b,\boldsymbol\alpha)=\tfrac12\|\mathbf{w}\|^2-\sum_{i=1}^n\alpha_i\big[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\big].
 \]
-Da $\nabla_{\mathbf{w}}L=0$ e $\partial L/\partial b=0$ si ottiene $\mathbf{w}=\sum_i\alpha_iz_i\mathbf{x}_i$ e $\sum_i\alpha_iz_i=0$. Sostituendo, il \textbf{dual problem} è
+From $\nabla_{\mathbf{w}}L=0$ and $\partial L/\partial b=0$ one gets $\mathbf{w}=\sum_i\alpha_iz_i\mathbf{x}_i$ and $\sum_i\alpha_iz_i=0$. Substituting, the \textbf{dual problem} is
 \[
 \max_{\boldsymbol\alpha}\;\boldsymbol\alpha^T\mathbf{1}-\tfrac12\boldsymbol\alpha^T\mathbf{H}\boldsymbol\alpha,\qquad H_{ij}=z_iz_j\,\mathbf{x}_i^T\mathbf{x}_j,\qquad
 \text{s.t.}\quad \sum_{i=1}^n\alpha_iz_i=0,\quad
 \begin{cases}\alpha_i\ge0 & \text{(hard margin)}\\0\le\alpha_i\le C & \text{(soft margin)}\end{cases}
 \]
-$\mathbf{H}$ dipende dai dati \textbf{solo tramite i prodotti scalari} $\mathbf{x}_i^T\mathbf{x}_j$: è questo che rende possibile il \textbf{kernel trick} (punto 4).
+$\mathbf{H}$ depends on the data \textbf{only through the dot products} $\mathbf{x}_i^T\mathbf{x}_j$: this is what enables the \textbf{kernel trick} (point 4).
 
-\textbf{(d) Relazione tra soluzione primal e dual.} Per \textbf{weak/strong duality} vale $L_D(\boldsymbol\alpha)\le L_P(\mathbf{w},b)$ per ogni coppia ammissibile, e il \textbf{duality gap} $L_P-L_D\ge0$ si annulla all'ottimo: $L_D(\boldsymbol\alpha^*)=L_P(\mathbf{w}^*,b^*)$. La soluzione primal si ricostruisce \emph{esattamente} da quella duale tramite le condizioni di stazionarietà:
+\textbf{(d) Relation between primal and dual solutions.} By \textbf{weak/strong duality}, $L_D(\boldsymbol\alpha)\le L_P(\mathbf{w},b)$ for any feasible pair, and the \textbf{duality gap} $L_P-L_D\ge0$ vanishes at the optimum: $L_D(\boldsymbol\alpha^*)=L_P(\mathbf{w}^*,b^*)$. The primal solution is recovered \emph{exactly} from the dual via the stationarity conditions:
 \[
 \mathbf{w}^*=\sum_{i=1}^n\alpha_i^*z_i\mathbf{x}_i,\qquad
-b^*=\text{ricavato dalle KKT (da un qualsiasi support vector }0<\alpha_i^*<C\text{)}.
+b^*=\text{recovered from KKT (from any support vector with }0<\alpha_i^*<C\text{)}.
 \]
-Le \textbf{KKT conditions} (stazionarietà, ammissibilità primale $z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\ge0$, ammissibilità duale $\alpha_i\ge0$, e \textbf{complementary slackness} $\alpha_i\big[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\big]=0$) caratterizzano l'ottimo: per ogni punto, o $\alpha_i=0$ oppure il vincolo è attivo ($z_i(\mathbf{w}^T\mathbf{x}_i+b)=1$). Quindi solo i punti \textbf{sul margine} hanno $\alpha_i\ne0$ -- i \textbf{support vector} -- e sono gli unici a contribuire a $\mathbf{w}^*$; i punti strettamente esterni al margine hanno $\alpha_i=0$ e \textbf{non influenzano} la soluzione.
+The \textbf{KKT conditions} (stationarity, primal feasibility $z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\ge0$, dual feasibility $\alpha_i\ge0$, and \textbf{complementary slackness} $\alpha_i\big[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\big]=0$) characterize the optimum: for each point, either $\alpha_i=0$ or the constraint is active ($z_i(\mathbf{w}^T\mathbf{x}_i+b)=1$). Therefore only the points \textbf{on the margin} have $\alpha_i\ne0$ -- the \textbf{support vectors} -- and they are the only ones contributing to $\mathbf{w}^*$; points strictly outside the margin have $\alpha_i=0$ and \textbf{do not affect} the solution.
 
-\subsection*{4. SVM Non Lineari (Kernel Trick)}
+\subsection*{4. Non-Linear SVMs (Kernel Trick)}
 
-Sia in fase di training (dual) sia in inferenza, i dati compaiono solo tramite prodotti scalari:
+Both at training time (dual) and at inference, the data appear only through dot products:
 \[
 \text{primal: } s(\mathbf{x}_t)=\mathbf{w}^T\mathbf{x}_t+b\ \ (O(D)),\qquad
 \text{dual: } s(\mathbf{x}_t)=\sum_{i:\alpha_i>0}\alpha_iz_i\,\mathbf{x}_i^T\mathbf{x}_t+b\ \ (O(\#SV)).
 \]
-Una mappa non lineare $\boldsymbol\Phi:\mathbb{R}^D\to\mathcal{H}$ entra nel duale e nello score solo come $\boldsymbol\Phi(\mathbf{x}_i)^T\boldsymbol\Phi(\mathbf{x}_j)$: la si sostituisce con un \textbf{kernel} $k(\mathbf{x}_1,\mathbf{x}_2)=\boldsymbol\Phi(\mathbf{x}_1)^T\boldsymbol\Phi(\mathbf{x}_2)$ senza mai costruire $\boldsymbol\Phi$ esplicitamente:
+A non-linear map $\boldsymbol\Phi:\mathbb{R}^D\to\mathcal{H}$ enters the dual and the score only as $\boldsymbol\Phi(\mathbf{x}_i)^T\boldsymbol\Phi(\mathbf{x}_j)$: it is replaced by a \textbf{kernel} $k(\mathbf{x}_1,\mathbf{x}_2)=\boldsymbol\Phi(\mathbf{x}_1)^T\boldsymbol\Phi(\mathbf{x}_2)$ without ever building $\boldsymbol\Phi$ explicitly:
 \[
 H_{ij}=z_iz_j\,k(\mathbf{x}_i,\mathbf{x}_j),\qquad s(\mathbf{x}_t)=\sum_{i:\alpha_i>0}\alpha_iz_i\,k(\mathbf{x}_i,\mathbf{x}_t)+b .
 \]
-Una separazione lineare nello spazio espanso corrisponde a una separazione \textbf{non lineare} nello spazio originale, e il costo computazionale del duale dipende solo da $N$, non da $\dim\mathcal{H}$. Kernel comuni: \textbf{polinomiale} $k(\mathbf{x}_1,\mathbf{x}_2)=(\mathbf{x}_1^T\mathbf{x}_2+1)^d$ e \textbf{RBF/Gaussiano} $k(\mathbf{x}_1,\mathbf{x}_2)=e^{-\gamma\|\mathbf{x}_1-\mathbf{x}_2\|^2}$ (associato a una mappa a dimensione infinita; $\gamma$ piccolo $\Rightarrow$ influenza estesa, $\gamma$ grande $\Rightarrow$ influenza locale). La \textbf{condizione di Mercer} ($k$ simmetrico e $\int k(\mathbf{u},\mathbf{v})g(\mathbf{u})g(\mathbf{v})\,d\mathbf{u}\,d\mathbf{v}>0\ \forall g$) è condizione \emph{sufficiente} affinché $k$ sia un prodotto scalare in qualche spazio.
+A linear separation in the expanded space corresponds to a \textbf{non-linear} separation in the original space, and the dual cost depends only on $N$, not on $\dim\mathcal{H}$. Common kernels: \textbf{polynomial} $k(\mathbf{x}_1,\mathbf{x}_2)=(\mathbf{x}_1^T\mathbf{x}_2+1)^d$ and \textbf{RBF/Gaussian} $k(\mathbf{x}_1,\mathbf{x}_2)=e^{-\gamma\|\mathbf{x}_1-\mathbf{x}_2\|^2}$, associated with an infinite-dimensional mapping ($\gamma$ small $\Rightarrow$ wide influence, $\gamma$ large $\Rightarrow$ local influence). \textbf{Mercer's condition} ($k$ symmetric and $\int k(\mathbf{u},\mathbf{v})g(\mathbf{u})g(\mathbf{v})\,d\mathbf{u}\,d\mathbf{v}>0\ \forall g$) is a \emph{sufficient} condition for $k$ to be a dot product in some space.
+
+\newpage
+\section*{Third Version (lecture notes)}
+
+\subsection*{Classification Rule}
+
+The SVM classifier is a discriminative, non-probabilistic approach for binary classification. Given a trained model with parameters $(\mathbf{w}, b)$, the classification rule for a test sample $\mathbf{x}_t$ consists of computing a linear decision function and comparing it with a threshold of $0$:
+\[
+s(\mathbf{x}_t) = \mathbf{w}^T\mathbf{x}_t + b, \qquad \text{decision: } \operatorname{sign}(s(\mathbf{x}_t)),
+\]
+where class labels are encoded as $z\in\{-1,+1\}$ ($z=+1$ for $\mathcal{H}_T$, $z=-1$ for $\mathcal{H}_F$). The continuous value $s=\mathbf{w}^T\mathbf{x}+b$ is the geometric score: its sign dictates the predicted class and its magnitude represents the distance from the separating surface. The SVM score has no probabilistic interpretation.
+
+\subsection*{Concept of Margin}
+
+The distance between a training point $\mathbf{x}_i$ and the separating hyperplane $\mathbf{w}^T\mathbf{x}+b=0$ is
+\[
+d(\mathbf{x}_i) = \frac{|\mathbf{w}^T\mathbf{x}_i+b|}{\|\mathbf{w}\|}.
+\]
+The margin is the distance between the closest data point and the hyperplane. SVM selects the unique solution that maximizes this minimum distance:
+\[
+\mathbf{w}^*,b^* = \arg\max_{\mathbf{w},b}\;\min_i \frac{z_i(\mathbf{w}^T\mathbf{x}_i+b)}{\|\mathbf{w}\|}.
+\]
+Since the classes are separable, $z_i(\mathbf{w}^T\mathbf{x}_i+b)>0$ on an optimal solution, so this reduces to $\arg\max_{\mathbf{w},b}\frac{1}{\|\mathbf{w}\|}\min_i[z_i(\mathbf{w}^T\mathbf{x}_i+b)]$. This criterion defines a well-defined geometric objective.
+
+\subsection*{Primal Formulation}
+
+Maximizing the margin $1/\|\mathbf{w}\|$ is mathematically equivalent to minimizing $\frac{1}{2}\|\mathbf{w}\|^2$. For the separable (hard margin) case:
+\[
+\min_{\mathbf{w},b}\tfrac{1}{2}\|\mathbf{w}\|^2 \quad \text{s.t.} \quad z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1,\ i=1\ldots n.
+\]
+This is a convex quadratic programming problem where every local minimum is global.
+
+When classes are not separable, slack variables $\xi_i\ge0$ are introduced to relax the constraints to $z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1-\xi_i$. This yields the soft margin problem:
+\[
+\min_{\mathbf{w},b,\boldsymbol\xi}\tfrac{1}{2}\|\mathbf{w}\|^2 + C\sum_i\xi_i \quad \text{s.t.} \quad z_i(\mathbf{w}^T\mathbf{x}_i+b)\ge1-\xi_i,\ \ \xi_i\ge0,
+\]
+where $C$ is a hyperparameter trading off margin width against training errors.
+
+Since for any point $\xi_i=\max[0,\,1-z_i(\mathbf{w}^T\mathbf{x}_i+b)]$, the constraints are absorbed into an unconstrained primal:
+\[
+\min_{\mathbf{w},b}\tfrac{1}{2}\|\mathbf{w}\|^2 + C\sum_i\max\!\big[0,\,1-z_i(\mathbf{w}^T\mathbf{x}_i+b)\big],
+\]
+where $\ell(s)=\max(0,1-s)$ is the \textbf{hinge loss}.
+
+\subsection*{Dual Formulation}
+
+By introducing Lagrange multipliers $\alpha_i\ge0$ for each constraint, the Lagrangian is:
+\[
+L(\mathbf{w},b,\boldsymbol\alpha)=\tfrac{1}{2}\|\mathbf{w}\|^2-\sum_{i=1}^n\alpha_i\big[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\big].
+\]
+Setting $\nabla L=0$ yields $\mathbf{w}=\sum_i\alpha_iz_i\mathbf{x}_i$ and $\sum_i\alpha_iz_i=0$. Substituting gives the Wolfe dual problem:
+\[
+\max_{\boldsymbol\alpha}\;\sum_i\alpha_i - \tfrac{1}{2}\sum_i\sum_j\alpha_i\alpha_jz_iz_j\mathbf{x}_i^T\mathbf{x}_j \quad \text{s.t.} \quad 0\le\alpha_i\le C,\ \ \sum_i\alpha_iz_i=0.
+\]
+The connection between primal and dual solutions is dictated by the KKT conditions, specifically complementary slackness:
+\[
+\alpha_i\big[z_i(\mathbf{w}^T\mathbf{x}_i+b)-1\big]=0.
+\]
+For every sample, either $\alpha_i=0$ or the margin gap is zero. All points outside the margin have $\alpha_i=0$; since $\mathbf{w}=\sum_i\alpha_iz_i\mathbf{x}_i$, these points do not contribute to the orientation of the hyperplane. Only points exactly on the margin or violating it have $\alpha_i>0$: these are the \textbf{support vectors}, and they alone determine the separating surface. The solution is sparse in the training set.
+
+\subsection*{Non-linear SVM and Kernel Trick}
+
+From the dual problem, the model can be naturally kernelized through its data dot products $\mathbf{x}_i^T\mathbf{x}_j$. The kernel trick maps data points into a high-dimensional feature space $\boldsymbol\Phi(\mathbf{x})$ by substituting the inner product with a non-linear kernel function:
+\[
+k(\mathbf{x}_i,\mathbf{x}_j) = \boldsymbol\Phi(\mathbf{x}_i)^T\boldsymbol\Phi(\mathbf{x}_j), \qquad \boldsymbol\Phi:\mathbb{R}^D\to\mathcal{H},
+\]
+with $H_{ij}=z_iz_j\,k(\mathbf{x}_i,\mathbf{x}_j)$. The non-linear classification score depends only on the sparse subset of support vectors:
+\[
+s(\mathbf{x}_t) = \sum_{i:\alpha_i>0}\alpha_iz_i\,k(\mathbf{x}_i,\mathbf{x}_t)+b.
+\]
+A linear separation in the expanded space corresponds to a non-linear separation in the original space, and the dual cost depends only on $N$, not on $\dim\mathcal{H}$. Common kernels: polynomial $k(\mathbf{x}_1,\mathbf{x}_2)=(\mathbf{x}_1^T\mathbf{x}_2+1)^d$ and RBF $k(\mathbf{x}_1,\mathbf{x}_2)=e^{-\gamma\|\mathbf{x}_1-\mathbf{x}_2\|^2}$, associated with an infinite-dimensional mapping. Mercer's condition is sufficient for a function $k$ to be a valid dot product in some inner product space.
+
+\subsection*{Comparison with Logistic Regression}
+
+Both LR and SVM can be interpreted as regularized risk minimization. Logistic Regression uses the smooth, continuous logistic loss:
+\[
+R(\mathbf{w},b) = \tfrac{\lambda}{2}\|\mathbf{w}\|^2 + \tfrac{1}{n}\sum_{i=1}^n\log\!\big(1+e^{-z_is_i}\big).
+\]
+SVM uses the piecewise linear hinge loss:
+\[
+R(\mathbf{w},b) = \tfrac{\lambda}{2}\|\mathbf{w}\|^2 + \tfrac{1}{n}\sum_i\max(0,\,1-z_is_i).
+\]
+In LR, $\lambda$ is required to guarantee parameter convergence on separable data. In SVM, $\lambda$ minimizes $\frac{1}{2}\|\mathbf{w}\|^2$, which corresponds to maximizing the geometric margin.
+
+The logistic loss is always positive, so in LR every sample contributes to the solution (not sparse). The hinge loss is exactly zero for each sample correctly classified beyond the margin, so only points inside the margin determine the solution: SVM is sparse in the training set.
+
+LR returns a calibrated posterior $P(\mathcal{C}|\mathbf{x})$, with the score being a log-posterior-ratio. SVM has no probabilistic meaning and needs an explicit calibration step.
