@@ -1,5 +1,23 @@
 # Dev Log — MLPR
 
+## 2026-06-23 — Card d'esame 14 (Bayes/Evaluation) + 15 (Calibration)  [sessione: c1ec221b]
+
+**Intent:** appello 18-giu-2026 con struttura nuova (3 domande teoriche 12+8+4 invece di 2). L'utente nota che lo slot da **4 punti** pesca da "parti minori del programma" e ipotizza che il prossimo possa essere "la funzione di costo"; chiede *"trova possibili candidati per questa domanda"* e poi *"si crea e dimmi quali hai creato"* (libertà piena su cosa generare).
+
+**Divergenze:**
+- Proposto framing: lo slot 4pt copre esattamente i **due capitoli non toccati** dalle prime due domande-modello → Bayes Decisions & Model Evaluation (§5) e Score Calibration (§9). Verificato che `MLPR_exam.tex` (collection 01–13) **non aveva nessuna card** su valutazione/DCF/calibrazione: gap reale.
+- Sul guess "funzione di costo": segnalato che la domanda uscita aveva **già bruciato** cost/empirical Bayes risk; candidati freschi più probabili = min vs actual DCF, DCF normalizzata/prior efficace, ROC/EER.
+- Proposto di splittare in **due card** (14 + 15) a specchio dei due capitoli sorgente, anziché una sola.
+
+**Decisioni:** utente accetta la creazione ("si crea"). Generate card 14 `14_Bayes_Evaluation` e 15 `15_Calibration` (study guide + card.md + .tex condensato ciascuna), agganciate al master dopo il blocco 13.
+
+**Esito/Problemi:**
+- Fase 3 (confronti) **saltata**: valutazione/calibrazione non sono modelli con pairing canonico.
+- Creato anche `example_exam/MLPR_exam_2026-06-18.md` (testo appello).
+- Master compila pulito (45 pp, exit 0); solo overfull hbox cosmetici dalle equazioni objective lunghe.
+
+**Lesson learned:** la struttura a 3 domande sdoppia il programma in *modelli* (Q1/Q2, già coperti dalle 13 card) + *metodologia di valutazione* (Q3, prima scoperta). Lo slot 4pt è il bacino Bayes/DCF/calibrazione; le due card chiudono il gap a prescindere dalla rotazione del prof. Filo conduttore che lega le due card: gap **actual − min DCF** = perdita per mis-calibrazione (fine card 14) → la card 15 è *come* si chiude quel gap.
+
 ## 2026-06-06 — Gaussian Mixture Models + confronto GMM↔GGM
 
 **Done:**

@@ -1,0 +1,94 @@
+\textbf{Motivation.} Maximum-a-posteriori class assignment ignores that different labeling errors may have different impact, so it does not necessarily lead to the best decision. We need a principled way to evaluate a classifier and to turn scores into decisions for a given application.
+
+\begin{tcolorbox}[colback=red!6, colframe=red!55!black, sharp corners, boxrule=1pt, left=2mm, right=2mm, top=1mm, bottom=1mm, enhanced, breakable]
+\textbf{\textcolor{red!55!black}{BLOCCO 1 --- Da accuracy a empirical Bayes risk}} \hfill \textcolor{gray}{\footnotesize\textit{possibile domanda 4pt $\cdot$ uscito 18-giu-2026}}
+\end{tcolorbox}
+
+\section*{Why accuracy is not enough}
+
+\textbf{accuracy} $= \frac{\#\text{ correct}}{\#\text{ samples}}$, \quad \textbf{error rate} $= 1 - \text{accuracy}$. Although sometimes useful, accuracy suffers from three issues:
+
+\begin{itemize}
+\item it does \textbf{not account for the cost} of the different kinds of errors;
+\item it depends on the \textbf{empirical class prior} of the evaluation set, which need not reflect the application prior;
+\item it is \textbf{unnormalized}: by itself it does not tell whether the classifier is useful (e.g.\ better than decisions taken without it).
+\end{itemize}
+
+We want a single-number metric that depends on the application (not on the empirical prior), accounts for error costs, allows comparing classifiers, and is normalized.
+
+\section*{Confusion matrix and per-class error rates}
+
+For a binary task (TN, FN, FP, TP) we define:
+
+$$P_{fn} = \frac{FN}{FN+TP}, \qquad P_{fp} = \frac{FP}{FP+TN}, \qquad TPR = 1 - P_{fn}, \qquad TNR = 1 - P_{fp}$$
+
+\textbf{Each rate uses one class at a time}, hence it does \textbf{not} depend on the class proportions, only on the within-class performance. With the empirical prior $\pi^{emp}_E = \frac{TP+FN}{N}$, the error rate is a prior-weighted sum:
+
+$$\text{err} = P_{fp}(1-\pi^{emp}_E) + P_{fn}\,\pi^{emp}_E$$
+
+This lets us predict the error under the \textbf{real} application prior $\pi$ from per-class rates measured on a balanced set, $\text{err}_{app} = P_{fp}(1-\pi) + P_{fn}\,\pi$, without collecting many rare-class samples.
+
+\section*{Cost and Bayes risk}
+
+The \textbf{cost} is not monetary: it quantifies the relative effect of different errors and changes per application. With action $a$ and cost $C(a|k)$, the \textbf{Bayes risk} is the cost we expect to pay on the application population:
+
+$$B = E_{X,C|E}[C(a(x,R)|c)] = \sum_{c} \pi_c\, E_{X|C,E}[C(a(x,R)|c)\mid c]$$
+
+Since $f_{X|C,E}$ is unknown, we approximate the expectations by averaging over a labeled evaluation set, obtaining the \textbf{empirical Bayes risk}:
+
+$$B_{emp} = \sum_{c} \pi_c \frac{1}{N_c}\sum_{i:\,c_i=c} C(a(x_i,R)|c)$$
+
+For a binary task with $C(H_F|H_F)=C(H_T|H_T)=0$, costs $C_{fn}, C_{fp}$:
+
+$$B_{emp} = \pi_T C_{fn} P_{fn} + (1-\pi_T) C_{fp} P_{fp} \;=\; DCF_u(\pi_T, C_{fn}, C_{fp})$$
+
+the \textbf{unnormalized Detection Cost Function}. Computing it requires the confusion matrix, the cost matrix and the class priors.
+
+\begin{tcolorbox}[colback=green!6, colframe=green!45!black, sharp corners, boxrule=1pt, left=2mm, right=2mm, top=1mm, bottom=1mm, enhanced, breakable]
+\textbf{\textcolor{green!45!black}{BLOCCO 2 --- Da costo a metrica operativa + decisione ottima}} \hfill \textcolor{gray}{\footnotesize\textit{possibile domanda 4pt $\cdot$ candidato fresco}}
+\end{tcolorbox}
+
+\section*{Normalized DCF, dummy systems, effective prior}
+
+A \textbf{dummy system} uses only priors and costs, ignoring the data: always-accept gives $DCF_u=(1-\pi_T)C_{fp}$, always-reject gives $DCF_u=\pi_T C_{fn}$. The \textbf{normalized DCF} divides by the best dummy:
+
+$$DCF(\pi_T, C_{fn}, C_{fp}) = \frac{DCF_u}{\min(\pi_T C_{fn},\,(1-\pi_T)C_{fp})}$$
+
+A value close to $1$ means no better than a dummy, close to $0$ means much better. The normalized DCF is \textbf{invariant to scaling of the costs}: priors and costs can be absorbed into a single \textbf{effective prior}
+
+$$\tilde{\pi} = \frac{\pi_T C_{fn}}{\pi_T C_{fn} + (1-\pi_T)C_{fp}}$$
+
+so the working point $(\pi_T, C_{fn}, C_{fp})$ is redundant (equivalent triplets give the same decision rule). For multiclass tasks no single effective prior exists, but the empirical Bayes risk and a normalized DCF (scaled by the best dummy) can still be computed.
+
+\section*{Optimal Bayes decision}
+
+For a probabilistic classifier, the expected cost of action $a$ is $C_{x,R}(a) = \sum_k C(a|k) P(C=k|x,R)$, and the \textbf{optimal Bayes decision} minimizes it: $a^*(x,R) = \arg\min_a C_{x,R}(a)$. If recognizer and evaluator agree ($C|X,R \sim C|X,E$), Bayes decisions minimize the Bayes risk, since $C_{x,R}(a) \ge C_{x,R}(a^*)\;\forall x$. For a generative model the rule becomes a likelihood-ratio test:
+
+$$\log\frac{f_{X|H}(x|H_T)}{f_{X|H}(x|H_F)} \gtrless -\log\frac{\pi_T C_{fn}}{(1-\pi_T)C_{fp}}$$
+
+For well-calibrated LLRs $s = \log\frac{f(x|H_T)}{f(x|H_F)}$ the optimal threshold is
+
+$$t = -\log\frac{\tilde{\pi}}{1-\tilde{\pi}}$$
+
+LLRs \textbf{disentangle the classifier from the application}: the same scores serve any working point.
+
+\begin{tcolorbox}[colback=green!6, colframe=green!45!black, sharp corners, boxrule=1pt, left=2mm, right=2mm, top=1mm, bottom=1mm, enhanced, breakable]
+\textbf{\textcolor{green!45!black}{BLOCCO 3 --- Valutazione su tutte le soglie: curve + min/actual DCF}} \hfill \textcolor{gray}{\footnotesize\textit{possibile domanda 4pt $\cdot$ candidato fresco $\cdot$ ponte verso Calibration}}
+\end{tcolorbox}
+
+\section*{ROC, DET, Equal Error Rate}
+
+Decisions compare a score with a threshold; varying the threshold yields all $(P_{fn}, P_{fp})$ pairs. The \textbf{Equal Error Rate} is the threshold where $P_{fn}=P_{fp}$. The \textbf{ROC} curve plots $TPR$ vs $FPR$, the \textbf{DET} curve plots $FNR$ vs $FPR$: both summarize performance across all thresholds.
+
+\section*{Minimum vs actual DCF}
+
+The \textbf{actual DCF} uses the theoretical threshold $t=-\log\frac{\tilde{\pi}}{1-\tilde{\pi}}$ (assuming calibrated scores). The \textbf{minimum DCF} sweeps the threshold over the evaluation set and keeps the lowest DCF: it is the cost we would pay if we knew the optimal threshold beforehand, and measures the classifier's pure discriminative quality. The difference
+
+$$\text{actual DCF} - \text{min DCF} \;\geq\; 0$$
+
+is the \textbf{loss due to score mis-calibration}, which calibration techniques aim to reduce.
+
+\begin{tcolorbox}[colframe=blue!70!black, colback=white, sharp corners=southwest, left=2mm, boxrule=1pt, enhanced, breakable]
+\textcolor{gray}{\footnotesize\textit{[INTEGRAZIONE TEORICA]}}\\
+Il \textbf{min DCF} isola il potere discriminante: \emph{quanto bene} il modello separa le classi, indipendentemente dalla soglia. L'\textbf{actual DCF} include anche \emph{quanto bene} gli score sono calibrati per quella specifica applicazione. Per questo il gap tra i due è la firma della mis-calibrazione, e non del potere discriminante: due modelli con lo stesso min DCF possono avere actual DCF molto diversi.
+\end{tcolorbox}

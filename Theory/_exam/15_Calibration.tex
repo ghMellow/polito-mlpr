@@ -1,0 +1,80 @@
+\textbf{Motivation.} For a given application the gap between actual and minimum DCF is the loss due to \textbf{score mis-calibration}. Calibration techniques aim to close this gap; fusion combines several classifiers into a single, better decision.
+
+\begin{tcolorbox}[colback=green!6, colframe=green!45!black, sharp corners, boxrule=1pt, left=2mm, right=2mm, top=1mm, bottom=1mm, enhanced, breakable]
+\textbf{\textcolor{green!45!black}{BLOCCO A --- Calibrazione (cuore della domanda)}} \hfill \textcolor{gray}{\footnotesize\textit{possibile domanda 4pt $\cdot$ candidato fresco}}
+\end{tcolorbox}
+
+\section*{Why scores are mis-calibrated}
+
+In many cases classifier scores have \textbf{no clear probabilistic interpretation} and are not log-likelihood ratios for the evaluation population:
+
+\begin{itemize}
+\item \textbf{SVM} scores cannot be interpreted as probabilities;
+\item strongly \textbf{regularized logistic regression} distorts scores so they no longer reflect class probabilities;
+\item even \textbf{generative models} produce poorly calibrated scores under overfitting or a \textbf{train/test mismatch}.
+\end{itemize}
+
+Deciding directly on such scores leads to mis-calibration, i.e.\ $\text{actual DCF} > \text{min DCF}$.
+
+\section*{Two strategies}
+
+To reduce mis-calibration we can: (1) use a \textbf{validation set to find a (near-)optimal threshold} for a given application — but we must know the target application; or (2) learn a \textbf{transformation $f$ that maps scores into approximately well-calibrated LLRs}, so optimal decisions are obtained for different applications (\textbf{application-independent}). We follow (2). We require $f$ \textbf{monotone}, so that higher raw scores keep favoring $H_T$ and lower ones $H_F$: $s_{cal} = f(s)$.
+
+\section*{Three calibration methods}
+
+\begin{itemize}
+\item \textbf{Isotonic regression:} non-parametric, monotone, optimal fit on the training data. The function is \textbf{piecewise} non-linear, needs interpolation for unseen scores, allows \textbf{no extrapolation}, and is expensive for large calibration sets.
+\item \textbf{Prior-weighted logistic regression:} an \textbf{affine} mapping incorporating class priors; simple, \textbf{extrapolates}, fast, but good only over a limited range of operating points.
+\item \textbf{Generative score models:} assume a probabilistic model for the per-class score distribution.
+\end{itemize}
+
+\section*{Prior-weighted logistic regression calibration}
+
+Raw scores are treated as 1-D feature vectors with an affine map $f(s) = \alpha s + \gamma$. Since $f(s)$ should be an LLR:
+
+$$f(s) = \log\frac{f_{S|C}(s|H_T)}{f_{S|C}(s|H_F)} = \alpha s + \gamma$$
+
+The posterior log-odds for prior $\tilde{\pi}$ are
+
+$$\log\frac{P(C=H_T|s)}{P(C=H_F|s)} = \alpha s + \gamma + \log\frac{\tilde{\pi}}{1-\tilde{\pi}} = \alpha s + \beta$$
+
+We estimate $\alpha,\beta$ with a non-regularized \textbf{prior-weighted} logistic regression on a calibration training set, then the calibrated score is
+
+$$f(s) = \alpha s + \beta - \log\frac{\tilde{\pi}}{1-\tilde{\pi}}$$
+
+with objective ($w_i = \tilde{\pi}/n_T$ if $z_i=+1$, $(1-\tilde{\pi})/n_F$ if $z_i=-1$):
+
+$$R(\alpha,\gamma) = \sum_i w_i \log\!\Big(1 + e^{-z_i\,(\alpha s + \gamma + \log\frac{\tilde{\pi}}{1-\tilde{\pi}})}\Big)$$
+
+We must specify a prior $\tilde{\pi}$, so we optimize for a specific application, but calibration is usually good for nearby applications too.
+
+\section*{Generative score model}
+
+Alternatively, model the class-conditional score densities and use their LLR:
+
+$$f_{cal}(s) = \log\frac{f_{S|H_T}(s)}{f_{S|H_F}(s)}, \qquad f_{S|H_T}=\mathcal{N}(s|\mu_T,v_T),\; f_{S|H_F}=\mathcal{N}(s|\mu_F,v_F)$$
+
+\textbf{Tied} variances $v_T=v_F=v$ are used because they yield a monotone transformation.
+
+\begin{tcolorbox}[colback=gray!8, colframe=gray!55!black, sharp corners, boxrule=1pt, left=2mm, right=2mm, top=1mm, bottom=1mm, enhanced, breakable]
+\textbf{\textcolor{gray!55!black}{BLOCCO B --- Setup dei dati + fusion}} \hfill \textcolor{gray}{\footnotesize\textit{più lato-progetto che teoria 4pt}}
+\end{tcolorbox}
+
+\section*{Calibration set, data splits, K-fold}
+
+The calibration set must be \textbf{independent} from the model-training and validation/evaluation sets, otherwise results are biased. The pipeline splits the training material into three parts: \textbf{Model train | Calibration train | (Calibration) Validation}; for convenience, calibration and validation are often extracted from the former validation set, reusing already-trained models. Two scenarios:
+
+\begin{itemize}
+\item mis-calibration from non-probabilistic scores or over/under-fitting, with \textbf{similar} populations $\Rightarrow$ calibration set from the training material; being 1-D, overfitting risk is low and no regularization is needed;
+\item mis-calibration from a \textbf{mismatch} between training and application populations $\Rightarrow$ the calibration set must \textbf{mimic the application} (less data than training a full classifier; Gaussian models can exploit unlabeled data).
+\end{itemize}
+
+With little data we use \textbf{K-fold cross-validation}, where every sample plays each role. The metric must be computed on the \textbf{pooled scores} of all folds (not by averaging per-fold metrics), using the same threshold; \textbf{LOO} is the extreme $K=N$. The final model is retrained on the \textbf{whole} training set, since each fold model used only a fraction $\frac{K-1}{K}$ of the data.
+
+\section*{Score fusion}
+
+Combining classifiers that extract different information. \textbf{Majority voting} assigns the most-voted label but needs tie-breaking and ignores confidence. With scores, a \textbf{weighted fusion} is used:
+
+$$s_{fused} = \alpha^T s + \gamma$$
+
+an affine transformation of the score vector $\mathbf{s}$ of the $m$ classifiers; weights $\alpha$ and bias $\gamma$ are estimated with \textbf{logistic regression}, exactly as in calibration but on $m$-dimensional inputs (summing LLRs is correct only if the systems are independent). With a single system this reduces to calibration. For multiclass tasks, multiclass logistic regression estimates the calibration/fusion weights.
