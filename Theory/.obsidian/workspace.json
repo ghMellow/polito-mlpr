@@ -18,6 +18,18 @@
               "icon": "lucide-file-text",
               "title": "MLPR_exam"
             }
+          },
+          {
+            "id": "be5929653e553278",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "_exam/example_exam/_examples.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "_examples"
+            }
           }
         ]
       }
@@ -181,6 +193,12 @@
       "bases:Crea nuova Base": false
     }
   },
-  "active": "03890378386e0073",
-  "lastOpenFiles": []
+  "active": "0a474765729b3a7b",
+  "lastOpenFiles": [
+    "_exam/MLPR_exam.synctex(busy)",
+    "_exam/pdflatex96714.fls",
+    "_exam/pdflatex95882.fls",
+    "_exam/example_exam/_examples.pdf",
+    "_exam/MLPR_exam.pdf"
+  ]
 }
